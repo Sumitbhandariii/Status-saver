@@ -46,6 +46,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.StatusItem
@@ -257,12 +259,12 @@ fun HomeScreen(
             }
         }
 
-        // Quick Actions Grid
+        // Quick Actions Row
         item {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                    .padding(vertical = 10.dp)
             ) {
                 Text(
                     text = "Quick Actions",
@@ -270,71 +272,77 @@ fun HomeScreen(
                         fontWeight = FontWeight.Bold,
                         color = PrimaryText
                     ),
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    QuickActionTile(
-                        icon = Icons.Default.Download,
-                        label = "Save All",
-                        bgColor = PrimaryPurpleLight,
-                        tintColor = PrimaryDeepPurple,
-                        onClick = onSaveAll,
-                        modifier = Modifier.weight(1f),
-                        testTag = "tile_save_all"
-                    )
+                    item {
+                        QuickActionTile(
+                            icon = Icons.Default.Download,
+                            label = "Save All",
+                            bgColor = PrimaryPurpleLight,
+                            tintColor = PrimaryDeepPurple,
+                            onClick = onSaveAll,
+                            testTag = "tile_save_all"
+                        )
+                    }
 
-                    QuickActionTile(
-                        icon = Icons.Default.Image,
-                        label = "View Images",
-                        bgColor = SecondaryCyanLight,
-                        tintColor = SecondaryCyanDark,
-                        onClick = {
-                            onNavigateStatusTab(StatusTab.IMAGES)
-                            onNavigateTab(NavigationTab.STATUSES)
-                        },
-                        modifier = Modifier.weight(1f),
-                        testTag = "tile_view_images"
-                    )
+                    item {
+                        QuickActionTile(
+                            icon = Icons.Default.Image,
+                            label = "Images",
+                            bgColor = SecondaryCyanLight,
+                            tintColor = SecondaryCyanDark,
+                            onClick = {
+                                onNavigateStatusTab(StatusTab.IMAGES)
+                                onNavigateTab(NavigationTab.STATUSES)
+                            },
+                            testTag = "tile_view_images"
+                        )
+                    }
 
-                    QuickActionTile(
-                        icon = Icons.Default.Videocam,
-                        label = "View Videos",
-                        bgColor = Color(0xFFFFF3E0),
-                        tintColor = Color(0xFFE65100),
-                        onClick = {
-                            onNavigateStatusTab(StatusTab.VIDEOS)
-                            onNavigateTab(NavigationTab.STATUSES)
-                        },
-                        modifier = Modifier.weight(1f),
-                        testTag = "tile_view_videos"
-                    )
+                    item {
+                        QuickActionTile(
+                            icon = Icons.Default.Videocam,
+                            label = "Videos",
+                            bgColor = Color(0xFFFFF3E0),
+                            tintColor = Color(0xFFE65100),
+                            onClick = {
+                                onNavigateStatusTab(StatusTab.VIDEOS)
+                                onNavigateTab(NavigationTab.STATUSES)
+                            },
+                            testTag = "tile_view_videos"
+                        )
+                    }
 
-                    QuickActionTile(
-                        icon = Icons.Default.Star,
-                        label = "Favorites",
-                        bgColor = Color(0xFFFFF8E1),
-                        tintColor = AccentAmber,
-                        onClick = {
-                            onNavigateSavedFilter(SavedFilter.FAVORITES)
-                            onNavigateTab(NavigationTab.SAVED)
-                        },
-                        modifier = Modifier.weight(1f),
-                        testTag = "tile_favorites"
-                    )
+                    item {
+                        QuickActionTile(
+                            icon = Icons.Default.Star,
+                            label = "Favorites",
+                            bgColor = Color(0xFFFFF8E1),
+                            tintColor = AccentAmber,
+                            onClick = {
+                                onNavigateSavedFilter(SavedFilter.FAVORITES)
+                                onNavigateTab(NavigationTab.SAVED)
+                            },
+                            testTag = "tile_favorites"
+                        )
+                    }
 
-                    QuickActionTile(
-                        icon = Icons.Default.CleaningServices,
-                        label = "Cleaner",
-                        bgColor = Color(0xFFFFEBEE),
-                        tintColor = Color(0xFFD32F2F),
-                        onClick = onOpenCleaner,
-                        modifier = Modifier.weight(1f),
-                        testTag = "tile_cleaner"
-                    )
+                    item {
+                        QuickActionTile(
+                            icon = Icons.Default.CleaningServices,
+                            label = "Cleaner",
+                            bgColor = Color(0xFFFFEBEE),
+                            tintColor = Color(0xFFD32F2F),
+                            onClick = onOpenCleaner,
+                            testTag = "tile_cleaner"
+                        )
+                    }
                 }
             }
         }
@@ -460,23 +468,26 @@ private fun QuickActionTile(
     testTag: String
 ) {
     Card(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
+            .width(82.dp)
+            .height(94.dp)
+            .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() }
             .testTag(testTag)
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(vertical = 10.dp, horizontal = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
-                    .size(38.dp)
+                    .size(42.dp)
                     .clip(CircleShape)
                     .background(bgColor),
                 contentAlignment = Alignment.Center
@@ -485,18 +496,21 @@ private fun QuickActionTile(
                     imageVector = icon,
                     contentDescription = label,
                     tint = tintColor,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = PrimaryText,
-                    fontSize = 10.sp
+                    fontSize = 11.sp
                 ),
-                maxLines = 1
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }

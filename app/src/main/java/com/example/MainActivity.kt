@@ -291,12 +291,11 @@ fun MainAppContent(viewModel: StatusVaultViewModel) {
             )
         }
 
-        // Settings & AdMob Configuration Dialog
+        // Settings Dialog (Production User Preferences)
         if (isSettingsDialogVisible) {
             SettingsDialog(
-                adConfig = adConfig,
-                onSaveAdConfig = { viewModel.saveAdMobConfig(it) },
                 onOpenPermissionGuide = { viewModel.openPermissionGuide() },
+                onOpenCleaner = { viewModel.openCleanerDialog() },
                 onDismiss = { viewModel.closeSettingsDialog() }
             )
         }
