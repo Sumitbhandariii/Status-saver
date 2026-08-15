@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">StatusVault</string>
+    <string name="app_tagline">Save, view &amp; manage status media</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_statuses">Statuses</string>
+    <string name="nav_saved">Saved</string>
+    
+    <!-- Home Actions -->
+    <string name="action_save_all">Save All</string>
+    <string name="action_view_images">View Images</string>
+    <string name="action_view_videos">View Videos</string>
+    <string name="action_favorites">Favorites</string>
+    <string name="action_cleaner">Status Cleaner</string>
+    
+    <!-- Tabs -->
+    <string name="tab_images">Images</string>
+    <string name="tab_videos">Videos</string>
+    <string name="tab_all">All</string>
+    
+    <!-- Permissions & Guidance -->
+    <string name="permission_title">Permission Required</string>
+    <string name="permission_desc">StatusVault needs permission to access WhatsApp status photos and videos.</string>
+    <string name="permission_grant">Grant Access</string>
+    <string name="permission_folder_desc">Select the WhatsApp Statuses folder to automatically detect new statuses.</string>
+    
+    <!-- FileProvider Authority -->
+    <string name="file_provider_authority">com.example.fileprovider</string>
+</resources>
