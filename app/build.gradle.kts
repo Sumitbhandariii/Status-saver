@@ -14,7 +14,7 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.statusvault.kpvrxz"
+    applicationId = "org.statusvault.app"
     minSdk = 24
     targetSdk = 36
     versionCode = 1
@@ -25,11 +25,31 @@ android {
 
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
+      val envPath = System.getenv("KEYSTORE_PATH")
+      val keyFile = when {
+        !envPath.isNullOrBlank() && file(envPath).exists() -> file(envPath)
+        file("${rootDir}/my-upload-key.jks").exists() -> file("${rootDir}/my-upload-key.jks")
+        file("${rootDir}/app/my-upload-key.jks").exists() -> file("${rootDir}/app/my-upload-key.jks")
+        file("${rootDir}/release.keystore").exists() -> file("${rootDir}/release.keystore")
+        file("${rootDir}/app/release.keystore").exists() -> file("${rootDir}/app/release.keystore")
+        else -> null
+      }
+
+      if (keyFile != null && keyFile.exists()) {
+        storeFile = keyFile
+        storePassword = System.getenv("STORE_PASSWORD") ?: "android"
+        keyAlias = System.getenv("KEY_ALIAS") ?: "upload"
+        keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+      } else {
+        // Fallback to debug keystore if no release keystore is provided
+        val debugFile = file("${rootDir}/debug.keystore")
+        if (debugFile.exists()) {
+          storeFile = debugFile
+          storePassword = "android"
+          keyAlias = "androiddebugkey"
+          keyPassword = "android"
+        }
+      }
     }
     create("debugConfig") {
       storeFile = file("${rootDir}/debug.keystore")

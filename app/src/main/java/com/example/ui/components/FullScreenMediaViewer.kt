@@ -523,8 +523,6 @@ fun ZoomableImageView(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(if (!status.filePath.isNullOrBlank()) status.filePath else status.uriString)
                 .crossfade(true)
-                .allowHardware(false)
-                .bitmapConfig(android.graphics.Bitmap.Config.ARGB_8888)
                 .build(),
             contentDescription = status.title,
             contentScale = ContentScale.Fit,

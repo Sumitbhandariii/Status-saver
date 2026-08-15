@@ -131,9 +131,9 @@ object SampleStatusProvider {
 
     private fun createSampleMediaFile(file: File, def: SampleDef) {
         try {
-            val width = 720
-            val height = 1280
-            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val width = 480
+            val height = 854
+            val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
             val canvas = Canvas(bitmap)
 
             // Background Gradient
@@ -151,20 +151,20 @@ object SampleStatusProvider {
                 color = Color.argb(40, 255, 255, 255)
                 style = Paint.Style.FILL
             }
-            canvas.drawCircle(width * 0.85f, height * 0.15f, 280f, shapePaint)
-            canvas.drawCircle(width * 0.15f, height * 0.85f, 320f, shapePaint)
+            canvas.drawCircle(width * 0.85f, height * 0.15f, 180f, shapePaint)
+            canvas.drawCircle(width * 0.15f, height * 0.85f, 200f, shapePaint)
 
             // Card Container
             val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.argb(70, 0, 0, 0)
                 style = Paint.Style.FILL
             }
-            val cardRect = RectF(120f, height * 0.35f, width - 120f, height * 0.65f)
-            canvas.drawRoundRect(cardRect, 48f, 48f, cardPaint)
+            val cardRect = RectF(60f, height * 0.35f, width - 60f, height * 0.65f)
+            canvas.drawRoundRect(cardRect, 32f, 32f, cardPaint)
 
             // Center Symbol / Emoji
             val symbolPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                textSize = 140f
+                textSize = 90f
                 textAlign = Paint.Align.CENTER
             }
             canvas.drawText(def.iconSymbol, width / 2f, height * 0.45f, symbolPaint)
@@ -172,7 +172,7 @@ object SampleStatusProvider {
             // Title / Caption
             val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
-                textSize = 54f
+                textSize = 34f
                 isFakeBoldText = true
                 textAlign = Paint.Align.CENTER
             }
@@ -181,7 +181,7 @@ object SampleStatusProvider {
             // Subtitle
             val subPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.argb(220, 255, 255, 255)
-                textSize = 36f
+                textSize = 24f
                 textAlign = Paint.Align.CENTER
             }
             canvas.drawText(def.subtext, width / 2f, height * 0.59f, subPaint)
@@ -189,7 +189,7 @@ object SampleStatusProvider {
             // Watermark / Brand
             val brandPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.argb(160, 255, 255, 255)
-                textSize = 32f
+                textSize = 20f
                 textAlign = Paint.Align.CENTER
                 letterSpacing = 0.2f
             }
@@ -197,7 +197,7 @@ object SampleStatusProvider {
             canvas.drawText("STATUSVAULT • $typeText", width / 2f, height * 0.92f, brandPaint)
 
             FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
             }
             bitmap.recycle()
         } catch (e: Exception) {
