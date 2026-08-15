@@ -39,6 +39,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +80,42 @@ fun PermissionGuideDialog(
         }
     }
 
+    val whatsappInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        try {
+            val path = "Android%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia"
+            Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
+        } catch (e: Exception) {
+            try {
+                DocumentsContract.buildDocumentUri(
+                    "com.android.externalstorage.documents",
+                    "primary:Android/media/com.whatsapp/WhatsApp/Media"
+                )
+            } catch (e2: Exception) {
+                null
+            }
+        }
+    } else {
+        null
+    }
+
+    val whatsappBusinessInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        try {
+            val path = "Android%2Fmedia%2Fcom.whatsapp.w4b%2FWhatsApp%20Business%2FMedia"
+            Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
+        } catch (e: Exception) {
+            try {
+                DocumentsContract.buildDocumentUri(
+                    "com.android.externalstorage.documents",
+                    "primary:Android/media/com.whatsapp.w4b/WhatsApp Business/Media"
+                )
+            } catch (e2: Exception) {
+                null
+            }
+        }
+    } else {
+        null
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
@@ -117,7 +154,7 @@ fun PermissionGuideDialog(
                         }
 
                         Text(
-                            text = "WhatsApp Status Guide",
+                            text = "WhatsApp Permission",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryText
@@ -139,35 +176,45 @@ fun PermissionGuideDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "How to see your contacts' statuses:",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryText
+                Surface(
+                    color = PrimaryPurpleLight.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Play Store Policy Compliant (Android 14 Scoped Storage)\n" +
+                               "1. WhatsApp me Status dekhein.\n" +
+                               "2. Niche button dabakar 'USE THIS FOLDER' par click karein.",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = PrimaryDeepPurple,
+                            fontWeight = FontWeight.SemiBold,
+                            lineHeight = 18.sp
+                        ),
+                        modifier = Modifier.padding(12.dp)
                     )
-                )
+                }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 GuideStepRow(
                     number = "1",
                     icon = Icons.Default.Visibility,
-                    title = "View Statuses in WhatsApp",
-                    description = "WhatsApp only downloads statuses to your device once you view them in WhatsApp."
+                    title = "View Status in WhatsApp",
+                    description = "WhatsApp only saves statuses temporarily after you view them in WhatsApp."
                 )
 
                 GuideStepRow(
                     number = "2",
                     icon = Icons.Default.Folder,
-                    title = "Grant Status Folder Permission",
-                    description = "On Android 11+, select the WhatsApp Media folder so StatusVault can detect newly viewed statuses."
+                    title = "Tap 'Use This Folder'",
+                    description = "When the system folder opens, simply tap 'Use this folder' at the bottom."
                 )
 
                 GuideStepRow(
                     number = "3",
                     icon = Icons.Default.Security,
-                    title = "1-Tap Save & Enjoy",
-                    description = "StatusVault will automatically list all photos and videos ready for instant 1-tap save."
+                    title = "Instant 1-Tap Save",
+                    description = "All viewed photos and videos will instantly display here for saving & sharing."
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -175,14 +222,14 @@ fun PermissionGuideDialog(
                 // Actions
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
                         onClick = {
                             try {
-                                safLauncher.launch(null)
+                                safLauncher.launch(whatsappInitialUri)
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                safLauncher.launch(null)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryDeepPurple),
@@ -199,7 +246,7 @@ fun PermissionGuideDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Select WhatsApp Folder (SAF)",
+                            text = "Grant WhatsApp Folder Permission",
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -207,21 +254,39 @@ fun PermissionGuideDialog(
                     OutlinedButton(
                         onClick = {
                             try {
-                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data = Uri.fromParts("package", context.packageName, null)
-                                }
-                                context.startActivity(intent)
+                                safLauncher.launch(whatsappBusinessInitialUri)
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                safLauncher.launch(null)
                             }
                         },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = SecondaryCyan),
                         shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btn_select_whatsapp_business_folder")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FolderOpen,
+                            contentDescription = null,
+                            tint = SecondaryCyan,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Grant WhatsApp Business Folder",
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    TextButton(
+                        onClick = onDismiss,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Open App System Permissions",
-                            color = PrimaryDeepPurple,
-                            fontWeight = FontWeight.SemiBold
+                            text = "Not Now",
+                            color = SecondaryText,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 13.sp
                         )
                     }
                 }

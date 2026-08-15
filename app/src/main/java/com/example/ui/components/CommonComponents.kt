@@ -64,10 +64,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.data.model.MediaType
 import com.example.data.model.StatusItem
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
+import com.google.android.gms.ads.LoadAdError
 import com.example.ui.theme.AccentAmber
 import com.example.ui.theme.AccentGreen
 import com.example.ui.theme.AccentRed
@@ -608,82 +614,35 @@ fun EmptyStateView(
 @Composable
 fun AdBannerView(
     modifier: Modifier = Modifier,
-    onAdClick: () -> Unit = { com.example.ads.AdMobManager.showTestInterstitial() }
+    adUnitId: String = "ca-app-pub-3940256099942544/6300978111"
 ) {
     Surface(
-        color = Color(0xFFFAFAFA),
+        color = Color(0xFFF9FAFB),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E7EB)),
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 14.dp, vertical = 6.dp)
-            .clickable { onAdClick() }
             .testTag("banner_ad_unit")
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+                .padding(vertical = 4.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                // Ad Badge
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = Color(0xFFF59E0B),
-                    modifier = Modifier.shadow(1.dp, RoundedCornerShape(4.dp))
-                ) {
-                    Text(
-                        text = "Ad",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 10.sp
-                        ),
-                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
-                    )
-                }
-
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = "Google AdMob • 320x50 Test Banner",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                color = PrimaryText,
-                                fontSize = 12.sp
-                            )
-                        )
+            AndroidView(
+                factory = { ctx ->
+                    AdView(ctx).apply {
+                        setAdSize(AdSize.BANNER)
+                        this.adUnitId = adUnitId
+                        loadAd(AdRequest.Builder().build())
                     }
-                    Text(
-                        text = "Tap to test interstitial ad preview & verification",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = SecondaryText,
-                            fontSize = 10.sp
-                        )
-                    )
-                }
-            }
-
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = PrimaryPurpleLight
-            ) {
-                Text(
-                    text = "Test Ad",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = PrimaryDeepPurple,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp
-                    ),
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            )
         }
     }
 }

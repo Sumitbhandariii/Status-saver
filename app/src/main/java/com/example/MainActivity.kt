@@ -1,10 +1,14 @@
 package com.example
 
+import android.app.Activity
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -18,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -114,6 +119,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainAppContent(viewModel: StatusVaultViewModel) {
     val context = LocalContext.current
+    val activity = context as? Activity
     val currentTab by viewModel.currentTab.collectAsState()
     val statusTab by viewModel.statusTab.collectAsState()
     val savedFilter by viewModel.savedFilter.collectAsState()
@@ -308,14 +314,14 @@ fun MainAppContent(viewModel: StatusVaultViewModel) {
             )
         }
 
-        // Ad Interstitial Modal
+        // Ad Interstitial Modal (Fallback)
         if (adDialogVisible == "INTERSTITIAL") {
             AdInterstitialDialog(
                 onDismiss = { AdMobManager.closeAd() }
             )
         }
 
-        // Ad Rewarded Modal
+        // Ad Rewarded Modal (Fallback)
         if (adDialogVisible?.startsWith("REWARDED") == true) {
             val reason = adDialogVisible?.substringAfter("REWARDED:") ?: ""
             AdRewardedDialog(
@@ -339,11 +345,14 @@ fun StatusVaultBottomNav(
     Surface(
         color = AppSurface,
         shadowElevation = 8.dp,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
     ) {
         NavigationBar(
             containerColor = AppSurface,
             tonalElevation = 0.dp,
+            windowInsets = WindowInsets(0, 0, 0, 0),
             modifier = Modifier.height(68.dp)
         ) {
             // Tab 1: Home

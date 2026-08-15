@@ -177,6 +177,9 @@ class StatusVaultViewModel(application: Application) : AndroidViewModel(applicat
     init {
         AdMobManager.init(application)
         refreshStatuses()
+        if (repository.getCustomTreeUri() == null) {
+            _isPermissionGuideVisible.value = true
+        }
     }
 
     fun setTab(tab: NavigationTab) {
@@ -231,21 +234,25 @@ class StatusVaultViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun saveAllCurrentStatuses() {
-        viewModelScope.launch {
-            val currentList = allStatuses.value
-            val unsaved = currentList.filter { !it.isSaved }
-            if (unsaved.isEmpty()) {
-                _eventMessage.emit("All statuses are already saved!")
-                return@launch
-            }
-
-            val result = repository.saveAllStatuses(currentList)
-            if (result.isSuccess) {
-                _eventMessage.emit("Saved ${result.getOrDefault(0)} statuses to gallery!")
-                updateCleanerStats()
-                AdMobManager.checkAndShowInterstitial()
-            } else {
-                _eventMessage.emit("Save All failed: ${result.exceptionOrNull()?.localizedMessage}")
+        AdMobManager.showRewardedAd(reason = "Save All Statuses") {
+            viewModelScope.launch {
+                val currentList = allStatuses.value
+                if (currentList.isEmpty()) {
+                    _eventMessage.emit("No WhatsApp statuses found to save.")
+                    return@launch
+                }
+                val result = repository.saveAllStatuses(currentList)
+                if (result.isSuccess) {
+                    val count = result.getOrDefault(0)
+                    if (count > 0) {
+                        _eventMessage.emit("Saved $count statuses to gallery successfully!")
+                    } else {
+                        _eventMessage.emit("All statuses are already saved in gallery!")
+                    }
+                    updateCleanerStats()
+                } else {
+                    _eventMessage.emit("Save All failed: ${result.exceptionOrNull()?.localizedMessage}")
+                }
             }
         }
     }
