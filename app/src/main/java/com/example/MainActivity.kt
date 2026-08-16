@@ -155,12 +155,18 @@ fun MainAppContent(viewModel: StatusVaultViewModel) {
         }
     }
 
-    // Back button handling
-    BackHandler(enabled = viewerMedia != null || isMultiSelectMode || currentTab != NavigationTab.HOME) {
+    // Back button handling with 1-hour interval closing Interstitial Ad
+    BackHandler(enabled = true) {
         when {
             viewerMedia != null -> viewModel.closeViewer()
             isMultiSelectMode -> viewModel.clearSelection()
             currentTab != NavigationTab.HOME -> viewModel.setTab(NavigationTab.HOME)
+            else -> {
+                // User is on Home tab and pressing back to exit the app
+                AdMobManager.showAppExitInterstitial(activity) {
+                    activity?.finish()
+                }
+            }
         }
     }
 
@@ -397,6 +403,7 @@ fun StatusVaultBottomNav(
                                 ) {
                                     Text(
                                         text = if (newCount > 99) "99+" else newCount.toString(),
+                                        color = Color.White,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold
                                     )

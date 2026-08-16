@@ -18,11 +18,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 data class AdMobConfig(
-    val appId: String = "ca-app-pub-3940256099942544~3347511713",
-    val bannerAdUnitId: String = "ca-app-pub-3940256099942544/6300978111",
-    val interstitialAdUnitId: String = "ca-app-pub-3940256099942544/1033173712",
-    val rewardedAdUnitId: String = "ca-app-pub-3940256099942544/5224354917",
-    val isTestMode: Boolean = true
+    val appId: String = "ca-app-pub-8212461864193378~9176143246",
+    val bannerAdUnitId: String = "ca-app-pub-8212461864193378/2175620622",
+    val interstitialAdUnitId: String = "ca-app-pub-8212461864193378/2151569892",
+    val rewardedAdUnitId: String = "ca-app-pub-8212461864193378/1821085763",
+    val isTestMode: Boolean = false
 )
 
 object AdMobManager {
@@ -33,11 +33,13 @@ object AdMobManager {
     private const val KEY_INTERSTITIAL_ID = "admob_interstitial_id"
     private const val KEY_REWARDED_ID = "admob_rewarded_id"
     private const val KEY_TEST_MODE = "admob_test_mode"
+    private const val KEY_LAST_EXIT_AD_TIME = "admob_last_exit_ad_time"
 
     var currentActivity: Activity? = null
 
     private var actionCount = 0
     private const val INTERSTITIAL_INTERVAL = 3
+    private const val EXIT_AD_INTERVAL_MS = 60 * 60 * 1000L // 1 hour in milliseconds
 
     private val _config = MutableStateFlow(AdMobConfig())
     val config: StateFlow<AdMobConfig> = _config.asStateFlow()
@@ -62,11 +64,11 @@ object AdMobManager {
         appContext = context.applicationContext
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val loadedConfig = AdMobConfig(
-            appId = prefs.getString(KEY_APP_ID, "ca-app-pub-3940256099942544~3347511713") ?: "ca-app-pub-3940256099942544~3347511713",
-            bannerAdUnitId = prefs.getString(KEY_BANNER_ID, "ca-app-pub-3940256099942544/6300978111") ?: "ca-app-pub-3940256099942544/6300978111",
-            interstitialAdUnitId = prefs.getString(KEY_INTERSTITIAL_ID, "ca-app-pub-3940256099942544/1033173712") ?: "ca-app-pub-3940256099942544/1033173712",
-            rewardedAdUnitId = prefs.getString(KEY_REWARDED_ID, "ca-app-pub-3940256099942544/5224354917") ?: "ca-app-pub-3940256099942544/5224354917",
-            isTestMode = prefs.getBoolean(KEY_TEST_MODE, true)
+            appId = prefs.getString(KEY_APP_ID, "ca-app-pub-8212461864193378~9176143246") ?: "ca-app-pub-8212461864193378~9176143246",
+            bannerAdUnitId = prefs.getString(KEY_BANNER_ID, "ca-app-pub-8212461864193378/2175620622") ?: "ca-app-pub-8212461864193378/2175620622",
+            interstitialAdUnitId = prefs.getString(KEY_INTERSTITIAL_ID, "ca-app-pub-8212461864193378/2151569892") ?: "ca-app-pub-8212461864193378/2151569892",
+            rewardedAdUnitId = prefs.getString(KEY_REWARDED_ID, "ca-app-pub-8212461864193378/1821085763") ?: "ca-app-pub-8212461864193378/1821085763",
+            isTestMode = prefs.getBoolean(KEY_TEST_MODE, false)
         )
         _config.value = loadedConfig
 
@@ -175,6 +177,42 @@ object AdMobManager {
         rewardedAd = null
         loadInterstitial(context)
         loadRewarded(context)
+    }
+
+    /**
+     * Shows an Interstitial Ad on app exit at most once every 1 hour.
+     * Invokes onComplete callback when the ad is dismissed or if skipped/interval has not elapsed.
+     */
+    fun showAppExitInterstitial(activity: Activity? = null, onComplete: () -> Unit) {
+        val act = activity ?: currentActivity
+        val ctx = appContext ?: act?.applicationContext
+
+        val prefs = ctx?.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val lastExitAdTime = prefs?.getLong(KEY_LAST_EXIT_AD_TIME, 0L) ?: 0L
+        val now = System.currentTimeMillis()
+
+        // Check if 1 hour has elapsed since last exit ad
+        if (now - lastExitAdTime >= EXIT_AD_INTERVAL_MS) {
+            prefs?.edit()?.putLong(KEY_LAST_EXIT_AD_TIME, now)?.apply()
+            val ad = interstitialAd
+            if (ad != null && act != null && !act.isFinishing && !act.isDestroyed) {
+                ad.fullScreenContentCallback = object : FullScreenContentCallback() {
+                    override fun onAdDismissedFullScreenContent() {
+                        interstitialAd = null
+                        appContext?.let { loadInterstitial(it) }
+                        onComplete()
+                    }
+                    override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                        interstitialAd = null
+                        appContext?.let { loadInterstitial(it) }
+                        onComplete()
+                    }
+                }
+                ad.show(act)
+                return
+            }
+        }
+        onComplete()
     }
 
     /**

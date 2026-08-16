@@ -80,33 +80,15 @@ fun PermissionGuideDialog(
         }
     }
 
-    val whatsappInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    val mediaFolderUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         try {
-            val path = "Android%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia"
+            val path = "Android%2Fmedia"
             Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
         } catch (e: Exception) {
             try {
                 DocumentsContract.buildDocumentUri(
                     "com.android.externalstorage.documents",
-                    "primary:Android/media/com.whatsapp/WhatsApp/Media"
-                )
-            } catch (e2: Exception) {
-                null
-            }
-        }
-    } else {
-        null
-    }
-
-    val whatsappBusinessInitialUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        try {
-            val path = "Android%2Fmedia%2Fcom.whatsapp.w4b%2FWhatsApp%20Business%2FMedia"
-            Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
-        } catch (e: Exception) {
-            try {
-                DocumentsContract.buildDocumentUri(
-                    "com.android.externalstorage.documents",
-                    "primary:Android/media/com.whatsapp.w4b/WhatsApp Business/Media"
+                    "primary:Android/media"
                 )
             } catch (e2: Exception) {
                 null
@@ -227,7 +209,7 @@ fun PermissionGuideDialog(
                     Button(
                         onClick = {
                             try {
-                                safLauncher.launch(whatsappInitialUri)
+                                safLauncher.launch(mediaFolderUri)
                             } catch (e: Exception) {
                                 safLauncher.launch(null)
                             }
@@ -246,35 +228,8 @@ fun PermissionGuideDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Grant WhatsApp Folder Permission",
+                            text = "Grant Media Folder Permission",
                             fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    OutlinedButton(
-                        onClick = {
-                            try {
-                                safLauncher.launch(whatsappBusinessInitialUri)
-                            } catch (e: Exception) {
-                                safLauncher.launch(null)
-                            }
-                        },
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = SecondaryCyan),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("btn_select_whatsapp_business_folder")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FolderOpen,
-                            contentDescription = null,
-                            tint = SecondaryCyan,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Grant WhatsApp Business Folder",
-                            fontWeight = FontWeight.SemiBold
                         )
                     }
 

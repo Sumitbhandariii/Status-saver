@@ -25,14 +25,12 @@ object StatusScanner {
                 if (rootDoc != null && rootDoc.isDirectory) {
                     val statusFolders = mutableListOf<DocumentFile>()
                     
-                    // Check if root itself is .Statuses
-                    if (rootDoc.name.equals(".Statuses", ignoreCase = true)) {
+                    // Recursively find all status directories or status files under the selected tree
+                    if (rootDoc.name.equals(".Statuses", ignoreCase = true) || rootDoc.name.equals("Statuses", ignoreCase = true)) {
                         statusFolders.add(rootDoc)
                     } else {
-                        // Scan for .Statuses subfolder or media folders
-                        findStatusDirectories(rootDoc, statusFolders, currentDepth = 0, maxDepth = 4)
+                        findStatusDirectories(rootDoc, statusFolders, currentDepth = 0, maxDepth = 6)
                         if (statusFolders.isEmpty()) {
-                            // If no explicitly named .Statuses folder found, scan root files directly
                             statusFolders.add(rootDoc)
                         }
                     }

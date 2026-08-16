@@ -168,7 +168,12 @@ fun SettingsDialog(
                     Switch(
                         checked = highQualitySave,
                         onCheckedChange = { highQualitySave = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = PrimaryDeepPurple)
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = PrimaryDeepPurple,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color(0xFFD1D5DB)
+                        )
                     )
                 }
 
@@ -197,7 +202,12 @@ fun SettingsDialog(
                     Switch(
                         checked = notifyNewStatuses,
                         onCheckedChange = { notifyNewStatuses = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = PrimaryDeepPurple)
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = PrimaryDeepPurple,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color(0xFFD1D5DB)
+                        )
                     )
                 }
 

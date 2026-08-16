@@ -17,10 +17,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
 
-        <!-- Google AdMob App ID (Test/Default ID) -->
+        <!-- Google AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-8212461864193378~9176143246" />
 
         <!-- Disable Firebase Analytics auto measurement when google-services.json is not configured -->
         <meta-data
