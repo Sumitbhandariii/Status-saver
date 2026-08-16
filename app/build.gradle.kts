@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Base64
 
 plugins {
   alias(libs.plugins.android.application)
@@ -25,8 +26,22 @@ android {
 
   signingConfigs {
     create("release") {
+      // Decode Base64 release keystore if release.keystore.base64 file exists
+      val b64File = file("${rootDir}/release.keystore.base64")
+      val decodedFile = file("${rootDir}/build/release_decoded.keystore")
+      if (b64File.exists() && b64File.length() > 0) {
+        try {
+          val content = b64File.readText().trim()
+          if (content.isNotEmpty()) {
+            decodedFile.parentFile?.mkdirs()
+            decodedFile.writeBytes(Base64.getDecoder().decode(content))
+          }
+        } catch (_: Exception) {}
+      }
+
       val envPath = System.getenv("KEYSTORE_PATH")
       val keyFile = when {
+        decodedFile.exists() && decodedFile.length() > 0 -> decodedFile
         !envPath.isNullOrBlank() && file(envPath).exists() -> file(envPath)
         file("${rootDir}/release.dot").exists() -> file("${rootDir}/release.dot")
         file("${rootDir}/app/release.dot").exists() -> file("${rootDir}/app/release.dot")
