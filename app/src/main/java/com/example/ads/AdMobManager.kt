@@ -39,7 +39,7 @@ object AdMobManager {
 
     private var actionCount = 0
     private const val INTERSTITIAL_INTERVAL = 3
-    private const val EXIT_AD_INTERVAL_MS = 60 * 60 * 1000L // 1 hour in milliseconds
+    private const val EXIT_AD_INTERVAL_MS = 30 * 60 * 1000L // 30 minutes in milliseconds
 
     private val _config = MutableStateFlow(AdMobConfig())
     val config: StateFlow<AdMobConfig> = _config.asStateFlow()
@@ -95,7 +95,7 @@ object AdMobManager {
         if (isInterstitialLoading) return
         isInterstitialLoading = true
 
-        val adUnitId = _config.value.interstitialAdUnitId.ifBlank { "ca-app-pub-3940256099942544/1033173712" }
+        val adUnitId = _config.value.interstitialAdUnitId.ifBlank { "ca-app-pub-8212461864193378/2151569892" }
         val adRequest = AdRequest.Builder().build()
 
         InterstitialAd.load(
@@ -134,7 +134,7 @@ object AdMobManager {
         if (isRewardedLoading) return
         isRewardedLoading = true
 
-        val adUnitId = _config.value.rewardedAdUnitId.ifBlank { "ca-app-pub-3940256099942544/5224354917" }
+        val adUnitId = _config.value.rewardedAdUnitId.ifBlank { "ca-app-pub-8212461864193378/1821085763" }
         val adRequest = AdRequest.Builder().build()
 
         RewardedAd.load(
@@ -180,8 +180,9 @@ object AdMobManager {
     }
 
     /**
-     * Shows an Interstitial Ad on app exit at most once every 1 hour.
-     * Invokes onComplete callback when the ad is dismissed or if skipped/interval has not elapsed.
+     * Shows an Interstitial Ad on app exit at most once every 30 minutes.
+     * If 30 minutes have elapsed, displays the interstitial ad and completes on dismissal/failure.
+     * If within the 30 minute cooldown, immediately proceeds with app exit.
      */
     fun showAppExitInterstitial(activity: Activity? = null, onComplete: () -> Unit) {
         val act = activity ?: currentActivity
@@ -191,7 +192,7 @@ object AdMobManager {
         val lastExitAdTime = prefs?.getLong(KEY_LAST_EXIT_AD_TIME, 0L) ?: 0L
         val now = System.currentTimeMillis()
 
-        // Check if 1 hour has elapsed since last exit ad
+        // Check if 30 minutes cooldown has elapsed since the last exit ad
         if (now - lastExitAdTime >= EXIT_AD_INTERVAL_MS) {
             prefs?.edit()?.putLong(KEY_LAST_EXIT_AD_TIME, now)?.apply()
             val ad = interstitialAd
@@ -209,6 +210,24 @@ object AdMobManager {
                     }
                 }
                 ad.show(act)
+                return
+            } else if (act != null && !act.isFinishing && !act.isDestroyed) {
+                // Load and show directly if not cached
+                loadInterstitial(act) { loadedAd ->
+                    loadedAd.fullScreenContentCallback = object : FullScreenContentCallback() {
+                        override fun onAdDismissedFullScreenContent() {
+                            interstitialAd = null
+                            appContext?.let { loadInterstitial(it) }
+                            onComplete()
+                        }
+                        override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                            interstitialAd = null
+                            appContext?.let { loadInterstitial(it) }
+                            onComplete()
+                        }
+                    }
+                    loadedAd.show(act)
+                }
                 return
             }
         }

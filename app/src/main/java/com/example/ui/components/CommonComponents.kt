@@ -49,6 +49,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,6 +69,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import com.example.ads.AdMobManager
 import com.example.data.model.MediaType
 import com.example.data.model.StatusItem
 import com.google.android.gms.ads.AdListener
@@ -614,8 +617,11 @@ fun EmptyStateView(
 @Composable
 fun AdBannerView(
     modifier: Modifier = Modifier,
-    adUnitId: String = "ca-app-pub-3940256099942544/6300978111"
+    adUnitId: String = ""
 ) {
+    val config by AdMobManager.config.collectAsState()
+    val targetAdUnitId = if (adUnitId.isNotBlank()) adUnitId else config.bannerAdUnitId.ifBlank { "ca-app-pub-8212461864193378/2175620622" }
+
     Surface(
         color = Color(0xFFF9FAFB),
         shape = RoundedCornerShape(12.dp),
@@ -635,7 +641,7 @@ fun AdBannerView(
                 factory = { ctx ->
                     AdView(ctx).apply {
                         setAdSize(AdSize.BANNER)
-                        this.adUnitId = adUnitId
+                        this.adUnitId = targetAdUnitId
                         loadAd(AdRequest.Builder().build())
                     }
                 },

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(entities = [StatusEntity::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
@@ -19,7 +20,16 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "status_vault.db"
-                ).fallbackToDestructiveMigration().build()
+                ).addCallback(object : RoomDatabase.Callback() {
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        try {
+                            db.execSQL("DELETE FROM statuses WHERE source = 'SAMPLE' OR id LIKE 'sample_%' OR filePath LIKE '%sample%' OR title LIKE 'status_%'")
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+                }).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

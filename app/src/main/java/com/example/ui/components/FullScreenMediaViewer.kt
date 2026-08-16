@@ -582,14 +582,10 @@ fun FullScreenVideoPlayer(
     var totalDuration by remember { mutableLongStateOf(status.durationMs.coerceAtLeast(1000L)) }
 
     val context = LocalContext.current
-    val isSampleMedia = remember(status) {
-        status.source == "SAMPLE" || status.filePath?.endsWith(".jpg") == true || status.filePath?.endsWith(".png") == true
-    }
 
-    // Fallback simulation timer if player cannot decode format natively (e.g. sample mock media)
-    LaunchedEffect(isPlaying, isPlayerError, isSampleMedia) {
+    LaunchedEffect(isPlaying, isPlayerError) {
         while (isPlaying) {
-            if (!isPlayerError && !isSampleMedia && videoViewRef != null) {
+            if (!isPlayerError && videoViewRef != null) {
                 videoViewRef?.let {
                     currentPosition = it.currentPosition.toLong()
                     val dur = it.duration.toLong()
@@ -616,8 +612,8 @@ fun FullScreenVideoPlayer(
             ) { onToggleControls() },
         contentAlignment = Alignment.Center
     ) {
-        if (isPlayerError || isSampleMedia) {
-            // Visual poster fallback for sample / unsupported video formats
+        if (isPlayerError) {
+            // Visual poster fallback for unsupported video formats
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(if (!status.filePath.isNullOrBlank()) status.filePath else status.uriString)

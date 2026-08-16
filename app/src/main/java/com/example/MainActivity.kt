@@ -98,6 +98,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AdMobManager.currentActivity = this
         enableEdgeToEdge()
 
         setContent {
@@ -113,6 +114,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        AdMobManager.currentActivity = this
     }
 }
 
