@@ -16,11 +16,20 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CleaningServices
@@ -48,9 +57,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -631,23 +637,51 @@ fun AdBannerView(
             .padding(horizontal = 14.dp, vertical = 6.dp)
             .testTag("banner_ad_unit")
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .heightIn(min = 54.dp)
+                .padding(vertical = 2.dp),
+            contentAlignment = Alignment.Center
         ) {
             AndroidView(
                 factory = { ctx ->
                     AdView(ctx).apply {
                         setAdSize(AdSize.BANNER)
                         this.adUnitId = targetAdUnitId
+                        layoutParams = android.view.ViewGroup.LayoutParams(
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+                        adListener = object : AdListener() {
+                            override fun onAdLoaded() {
+                                super.onAdLoaded()
+                                android.util.Log.d("AdMobManager", "Banner ad loaded successfully ($targetAdUnitId)")
+                            }
+
+                            override fun onAdFailedToLoad(adError: LoadAdError) {
+                                super.onAdFailedToLoad(adError)
+                                android.util.Log.w(
+                                    "AdMobManager",
+                                    "Banner ad failed to load ($targetAdUnitId): code=${adError.code}, msg=${adError.message}"
+                                )
+                            }
+                        }
                         loadAd(AdRequest.Builder().build())
+                    }
+                },
+                onReset = { adView ->
+                    adView.destroy()
+                },
+                update = { view ->
+                    if (view.adUnitId != targetAdUnitId) {
+                        view.adUnitId = targetAdUnitId
+                        view.loadAd(AdRequest.Builder().build())
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .wrapContentHeight()
             )
         }
     }

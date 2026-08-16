@@ -28,10 +28,16 @@ android {
       val envPath = System.getenv("KEYSTORE_PATH")
       val keyFile = when {
         !envPath.isNullOrBlank() && file(envPath).exists() -> file(envPath)
+        file("${rootDir}/release.dot").exists() -> file("${rootDir}/release.dot")
+        file("${rootDir}/app/release.dot").exists() -> file("${rootDir}/app/release.dot")
         file("${rootDir}/my-upload-key.jks").exists() -> file("${rootDir}/my-upload-key.jks")
         file("${rootDir}/app/my-upload-key.jks").exists() -> file("${rootDir}/app/my-upload-key.jks")
         file("${rootDir}/release.keystore").exists() -> file("${rootDir}/release.keystore")
         file("${rootDir}/app/release.keystore").exists() -> file("${rootDir}/app/release.keystore")
+        file("${rootDir}/release.jks").exists() -> file("${rootDir}/release.jks")
+        file("${rootDir}/app/release.jks").exists() -> file("${rootDir}/app/release.jks")
+        file("${rootDir}/keystore.jks").exists() -> file("${rootDir}/keystore.jks")
+        file("${rootDir}/app/keystore.jks").exists() -> file("${rootDir}/app/keystore.jks")
         else -> null
       }
 

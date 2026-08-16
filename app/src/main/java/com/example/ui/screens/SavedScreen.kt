@@ -349,6 +349,10 @@ fun SavedScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
+                item(span = { GridItemSpan(2) }) {
+                    AdBannerView()
+                }
+
                 items(items, key = { it.id }) { status ->
                     MediaStatusCard(
                         status = status,

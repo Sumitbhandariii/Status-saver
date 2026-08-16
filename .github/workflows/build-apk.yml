@@ -37,7 +37,13 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          if [ -f "my-upload-key.jks" ]; then
+          if [ -f "release.dot" ]; then
+            echo "Found directly uploaded keystore: release.dot in root folder."
+            echo "KEYSTORE_PATH=${{ github.workspace }}/release.dot" >> $GITHUB_ENV
+          elif [ -f "app/release.dot" ]; then
+            echo "Found directly uploaded keystore: app/release.dot."
+            echo "KEYSTORE_PATH=${{ github.workspace }}/app/release.dot" >> $GITHUB_ENV
+          elif [ -f "my-upload-key.jks" ]; then
             echo "Found directly uploaded keystore: my-upload-key.jks in root folder."
             echo "KEYSTORE_PATH=${{ github.workspace }}/my-upload-key.jks" >> $GITHUB_ENV
           elif [ -f "app/my-upload-key.jks" ]; then
@@ -46,6 +52,15 @@ jobs:
           elif [ -f "release.keystore" ]; then
             echo "Found directly uploaded keystore: release.keystore in root folder."
             echo "KEYSTORE_PATH=${{ github.workspace }}/release.keystore" >> $GITHUB_ENV
+          elif [ -f "app/release.keystore" ]; then
+            echo "Found directly uploaded keystore: app/release.keystore."
+            echo "KEYSTORE_PATH=${{ github.workspace }}/app/release.keystore" >> $GITHUB_ENV
+          elif [ -f "release.jks" ]; then
+            echo "Found directly uploaded keystore: release.jks in root folder."
+            echo "KEYSTORE_PATH=${{ github.workspace }}/release.jks" >> $GITHUB_ENV
+          elif [ -f "app/release.jks" ]; then
+            echo "Found directly uploaded keystore: app/release.jks."
+            echo "KEYSTORE_PATH=${{ github.workspace }}/app/release.jks" >> $GITHUB_ENV
           elif [ -n "$KEYSTORE_BASE64" ]; then
             echo "Decoding release keystore from KEYSTORE_BASE64 secret..."
             echo "$KEYSTORE_BASE64" | base64 --decode > my-upload-key.jks
