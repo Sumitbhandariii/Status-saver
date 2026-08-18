@@ -82,14 +82,12 @@ fun PermissionGuideDialog(
 
     val mediaFolderUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         try {
-            val path = "Android%2Fmedia"
+            // Target the actual WhatsApp Media directory so Android's document picker opens directly to WhatsApp Media
+            val path = "Android%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia"
             Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
         } catch (e: Exception) {
             try {
-                DocumentsContract.buildDocumentUri(
-                    "com.android.externalstorage.documents",
-                    "primary:Android/media"
-                )
+                Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia")
             } catch (e2: Exception) {
                 null
             }

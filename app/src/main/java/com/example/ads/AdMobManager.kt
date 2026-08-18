@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 data class AdMobConfig(
     val appId: String = "ca-app-pub-8212461864193378~9176143246",
-    val bannerAdUnitId: String = "ca-app-pub-8212461864193378/2175620622",
+    val bannerAdUnitId: String = "ca-app-pub-8212461864193378/8750309827",
     val interstitialAdUnitId: String = "ca-app-pub-8212461864193378/2151569892",
     val rewardedAdUnitId: String = "ca-app-pub-8212461864193378/1821085763",
     val isTestMode: Boolean = false
@@ -66,7 +66,7 @@ object AdMobManager {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val loadedConfig = AdMobConfig(
             appId = prefs.getString(KEY_APP_ID, "ca-app-pub-8212461864193378~9176143246") ?: "ca-app-pub-8212461864193378~9176143246",
-            bannerAdUnitId = prefs.getString(KEY_BANNER_ID, "ca-app-pub-8212461864193378/2175620622") ?: "ca-app-pub-8212461864193378/2175620622",
+            bannerAdUnitId = prefs.getString(KEY_BANNER_ID, "ca-app-pub-8212461864193378/8750309827") ?: "ca-app-pub-8212461864193378/8750309827",
             interstitialAdUnitId = prefs.getString(KEY_INTERSTITIAL_ID, "ca-app-pub-8212461864193378/2151569892") ?: "ca-app-pub-8212461864193378/2151569892",
             rewardedAdUnitId = prefs.getString(KEY_REWARDED_ID, "ca-app-pub-8212461864193378/1821085763") ?: "ca-app-pub-8212461864193378/1821085763",
             isTestMode = prefs.getBoolean(KEY_TEST_MODE, false)

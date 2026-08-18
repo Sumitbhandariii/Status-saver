@@ -626,63 +626,66 @@ fun AdBannerView(
     adUnitId: String = ""
 ) {
     val config by AdMobManager.config.collectAsState()
-    val targetAdUnitId = if (adUnitId.isNotBlank()) adUnitId else config.bannerAdUnitId.ifBlank { "ca-app-pub-8212461864193378/2175620622" }
+    val targetAdUnitId = if (adUnitId.isNotBlank()) {
+        adUnitId
+    } else {
+        config.bannerAdUnitId.ifBlank { "ca-app-pub-8212461864193378/8750309827" }
+    }
 
-    Surface(
-        color = Color(0xFFF9FAFB),
-        shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E7EB)),
+    var isLoaded by remember { mutableStateOf(false) }
+
+    Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 14.dp, vertical = 6.dp)
-            .testTag("banner_ad_unit")
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .testTag("banner_ad_unit"),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
+        AndroidView(
+            factory = { ctx ->
+                AdView(ctx).apply {
+                    setAdSize(AdSize.BANNER)
+                    this.adUnitId = targetAdUnitId
+                    layoutParams = android.view.ViewGroup.LayoutParams(
+                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                        android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                    adListener = object : AdListener() {
+                        override fun onAdLoaded() {
+                            super.onAdLoaded()
+                            isLoaded = true
+                            android.util.Log.d("AdMobManager", "Banner ad loaded successfully ($targetAdUnitId)")
+                        }
+
+                        override fun onAdFailedToLoad(adError: LoadAdError) {
+                            super.onAdFailedToLoad(adError)
+                            android.util.Log.w(
+                                "AdMobManager",
+                                "Banner ad failed to load ($targetAdUnitId): code=${adError.code}, msg=${adError.message}"
+                            )
+                            // Auto retry loading ad after delay
+                            postDelayed({
+                                try {
+                                    loadAd(AdRequest.Builder().build())
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }, 10000L)
+                        }
+                    }
+                    val request = AdRequest.Builder().build()
+                    loadAd(request)
+                }
+            },
+            update = { view ->
+                if (view.adUnitId != targetAdUnitId) {
+                    view.adUnitId = targetAdUnitId
+                    view.loadAd(AdRequest.Builder().build())
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 54.dp)
-                .padding(vertical = 2.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            AndroidView(
-                factory = { ctx ->
-                    AdView(ctx).apply {
-                        setAdSize(AdSize.BANNER)
-                        this.adUnitId = targetAdUnitId
-                        layoutParams = android.view.ViewGroup.LayoutParams(
-                            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-                        )
-                        adListener = object : AdListener() {
-                            override fun onAdLoaded() {
-                                super.onAdLoaded()
-                                android.util.Log.d("AdMobManager", "Banner ad loaded successfully ($targetAdUnitId)")
-                            }
-
-                            override fun onAdFailedToLoad(adError: LoadAdError) {
-                                super.onAdFailedToLoad(adError)
-                                android.util.Log.w(
-                                    "AdMobManager",
-                                    "Banner ad failed to load ($targetAdUnitId): code=${adError.code}, msg=${adError.message}"
-                                )
-                            }
-                        }
-                        loadAd(AdRequest.Builder().build())
-                    }
-                },
-                onReset = { adView ->
-                    adView.destroy()
-                },
-                update = { view ->
-                    if (view.adUnitId != targetAdUnitId) {
-                        view.adUnitId = targetAdUnitId
-                        view.loadAd(AdRequest.Builder().build())
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-            )
-        }
+                .wrapContentHeight()
+        )
     }
 }

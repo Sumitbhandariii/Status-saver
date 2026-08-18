@@ -301,19 +301,18 @@ fun StatusListScreen(
             }
         }
 
-        // Status Grid
+        // Dedicated Banner Ad Section (Always Visible on Status Screen)
+        AdBannerView()
+
+        // Status Grid or Empty State
         if (currentItems.isNotEmpty()) {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
                 contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 96.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.weight(1f)
             ) {
-                item(span = { GridItemSpan(2) }) {
-                    AdBannerView()
-                }
-
                 items(currentItems, key = { it.id }) { status ->
                     MediaStatusCard(
                         status = status,
