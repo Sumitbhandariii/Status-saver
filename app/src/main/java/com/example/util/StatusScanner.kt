@@ -21,95 +21,101 @@ object StatusScanner {
     private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp")
     private val VIDEO_EXTENSIONS = setOf("mp4", "3gp", "mkv", "mov", "webm")
 
+    fun detectMediaType(fileName: String): MediaType? {
+        val ext = fileName.substringAfterLast('.', "").lowercase()
+        return when {
+            IMAGE_EXTENSIONS.contains(ext) -> MediaType.IMAGE
+            VIDEO_EXTENSIONS.contains(ext) -> MediaType.VIDEO
+            else -> null
+        }
+    }
+
+    fun buildWhatsAppStatusDirectories(rootDir: File): List<File> {
+        val candidates = mutableListOf<File>()
+        val possibleRoots = listOf(
+            File(rootDir, "Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
+            File(rootDir, "Android/media/com.whatsapp/WhatsApp/Media/Statuses"),
+            File(rootDir, "Android/media/com.whatsapp/WhatsApp/Media"),
+            File(rootDir, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses"),
+            File(rootDir, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media/Statuses"),
+            File(rootDir, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media"),
+            File(rootDir, "Android/media/com.whatsapp.clone/WhatsApp/Media/.Statuses"),
+            File(rootDir, "Android/media/com.whatsapp.dual/WhatsApp/Media/.Statuses"),
+            File(rootDir, "Android/media/com.gbwhatsapp/GBWhatsApp/Media/.Statuses"),
+            File(rootDir, "Android/media/com.fmwhatsapp/FMWhatsApp/Media/.Statuses"),
+            File(rootDir, "Android/media/com.yowhatsapp/YoWhatsApp/Media/.Statuses"),
+            File(rootDir, "WhatsApp/Media/.Statuses"),
+            File(rootDir, "WhatsApp/Media/Statuses"),
+            File(rootDir, "WhatsApp Business/Media/.Statuses"),
+            File(rootDir, "WhatsApp Business/Media/Statuses"),
+            File(rootDir, "GBWhatsApp/Media/.Statuses"),
+            File(rootDir, "DualApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
+            File(rootDir, "ParallelApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
+            File(rootDir, "999/Android/media/com.whatsapp/WhatsApp/Media/.Statuses")
+        )
+
+        for (path in possibleRoots) {
+            if (path.exists() && path.isDirectory) {
+                candidates.add(path)
+            }
+        }
+
+        return candidates.distinctBy { it.absolutePath }
+    }
+
     fun scanRealWhatsAppStatuses(context: Context, customTreeUri: String? = null): List<StatusItem> {
         val result = mutableListOf<StatusItem>()
         val seenPaths = mutableSetOf<String>()
 
-        // 1. Scan SAF TreeUri if user granted permission
         if (!customTreeUri.isNullOrBlank()) {
             try {
                 val treeUri = Uri.parse(customTreeUri)
                 Log.d(TAG, "Scanning granted SAF TreeUri: $treeUri")
-
-                // Fast ContentResolver SAF DocumentsContract query & recursive DocumentFile fallback
                 scanTreeUriFast(context, treeUri, result, seenPaths)
-
             } catch (e: Exception) {
                 Log.e(TAG, "Error scanning customTreeUri: $customTreeUri", e)
             }
         }
 
-        // 2. Scan direct file system paths (works on Android 10 and below, dual/cloned WhatsApp, and public dirs)
         try {
             val extStorage = Environment.getExternalStorageDirectory()
-            val possibleDirs = listOf(
-                // Modern WhatsApp in Android/media
-                File(extStorage, "Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
-                File(extStorage, "Android/media/com.whatsapp/WhatsApp/Media/Statuses"),
-                File(extStorage, "Android/media/com.whatsapp/WhatsApp/Media"),
-                // WhatsApp Business Modern in Android/media
-                File(extStorage, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses"),
-                File(extStorage, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media/Statuses"),
-                File(extStorage, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media"),
-                // Dual / Cloned / Modded WhatsApp paths
-                File(extStorage, "Android/media/com.whatsapp.clone/WhatsApp/Media/.Statuses"),
-                File(extStorage, "Android/media/com.whatsapp.dual/WhatsApp/Media/.Statuses"),
-                File(extStorage, "Android/media/com.gbwhatsapp/GBWhatsApp/Media/.Statuses"),
-                File(extStorage, "Android/media/com.fmwhatsapp/FMWhatsApp/Media/.Statuses"),
-                File(extStorage, "Android/media/com.yowhatsapp/YoWhatsApp/Media/.Statuses"),
-                // Legacy WhatsApp root paths
-                File(extStorage, "WhatsApp/Media/.Statuses"),
-                File(extStorage, "WhatsApp/Media/Statuses"),
-                File(extStorage, "WhatsApp Business/Media/.Statuses"),
-                File(extStorage, "WhatsApp Business/Media/Statuses"),
-                File(extStorage, "GBWhatsApp/Media/.Statuses"),
-                File(extStorage, "DualApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
-                File(extStorage, "ParallelApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
-                File(extStorage, "999/Android/media/com.whatsapp/WhatsApp/Media/.Statuses")
-            )
+            val possibleDirs = buildWhatsAppStatusDirectories(extStorage)
 
             for (dir in possibleDirs) {
-                if (dir.exists() && dir.isDirectory) {
-                    val files = dir.listFiles()
-                    if (files != null) {
-                        for (file in files) {
-                            if (file.isFile && !file.name.startsWith(".nomedia") && file.length() > 0) {
-                                val ext = file.extension.lowercase()
-                                val mediaType = when {
-                                    IMAGE_EXTENSIONS.contains(ext) -> MediaType.IMAGE
-                                    VIDEO_EXTENSIONS.contains(ext) -> MediaType.VIDEO
-                                    else -> null
-                                }
-                                if (mediaType != null && !seenPaths.contains(file.absolutePath) && !seenPaths.contains(file.name)) {
-                                    val isBusiness = dir.absolutePath.contains("w4b", ignoreCase = true) || dir.absolutePath.contains("Business", ignoreCase = true)
-                                    val item = StatusItem(
-                                        id = file.absolutePath,
-                                        title = file.name,
-                                        uriString = Uri.fromFile(file).toString(),
-                                        filePath = file.absolutePath,
-                                        mediaType = mediaType,
-                                        fileSize = file.length(),
-                                        durationMs = if (mediaType == MediaType.VIDEO) 15000L else 0L,
-                                        dateModified = if (file.lastModified() > 0) file.lastModified() else System.currentTimeMillis(),
-                                        isSaved = false,
-                                        isFavorite = false,
-                                        isNew = true,
-                                        source = if (isBusiness) "WHATSAPP_BUSINESS" else "WHATSAPP"
-                                    )
-                                    result.add(item)
-                                    seenPaths.add(file.absolutePath)
-                                    seenPaths.add(file.name)
-                                }
-                            }
-                        }
-                    }
+                val files = dir.listFiles() ?: continue
+                for (file in files) {
+                    if (!file.isFile || file.name.startsWith(".nomedia") || file.length() <= 0) continue
+                    val mediaType = detectMediaType(file.name)
+                    if (mediaType == null) continue
+                    val key = file.absolutePath
+                    if (seenPaths.contains(key) || seenPaths.contains(file.name)) continue
+
+                    val isBusiness = dir.absolutePath.contains("w4b", ignoreCase = true)
+                        || dir.absolutePath.contains("Business", ignoreCase = true)
+
+                    val item = StatusItem(
+                        id = key,
+                        title = file.name,
+                        uriString = Uri.fromFile(file).toString(),
+                        filePath = file.absolutePath,
+                        mediaType = mediaType,
+                        fileSize = file.length(),
+                        durationMs = if (mediaType == MediaType.VIDEO) 15000L else 0L,
+                        dateModified = if (file.lastModified() > 0) file.lastModified() else System.currentTimeMillis(),
+                        isSaved = false,
+                        isFavorite = false,
+                        isNew = true,
+                        source = if (isBusiness) "WHATSAPP_BUSINESS" else "WHATSAPP"
+                    )
+                    result.add(item)
+                    seenPaths.add(key)
+                    seenPaths.add(file.name)
                 }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error scanning direct file paths", e)
         }
 
-        // Sort newly detected statuses by date
         return result.sortedByDescending { it.dateModified }
     }
 

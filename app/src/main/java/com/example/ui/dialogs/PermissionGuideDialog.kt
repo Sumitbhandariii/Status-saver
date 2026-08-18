@@ -85,17 +85,6 @@ fun PermissionGuideDialog(
         }
     }
 
-    val mediaFolderUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        try {
-            val path = "Android%2Fmedia"
-            Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
-        } catch (e: Exception) {
-            null
-        }
-    } else {
-        null
-    }
-
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
@@ -207,7 +196,7 @@ fun PermissionGuideDialog(
                     Button(
                         onClick = {
                             try {
-                                safLauncher.launch(mediaFolderUri)
+                                safLauncher.launch(null)
                             } catch (e: Exception) {
                                 safLauncher.launch(null)
                             }
