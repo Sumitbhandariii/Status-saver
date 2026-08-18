@@ -73,7 +73,12 @@ fun PermissionGuideDialog(
                 val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 context.contentResolver.takePersistableUriPermission(uri, takeFlags)
             } catch (e: Exception) {
-                e.printStackTrace()
+                // If persistable flags fail for read-only or certain providers, try read-only
+                try {
+                    context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                } catch (ignored: Exception) {
+                    ignored.printStackTrace()
+                }
             }
             onFolderSelected(uri.toString())
             onDismiss()

@@ -27,4 +27,7 @@
     
     <!-- FileProvider Authority -->
     <string name="file_provider_authority">com.example.fileprovider</string>
+
+    <!-- Firebase / Google App ID placeholder to suppress FA missing ID notice -->
+    <string name="google_app_id" translatable="false">1:821246186419:android:statusvault</string>
 </resources>
