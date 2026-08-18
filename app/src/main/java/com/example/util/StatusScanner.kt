@@ -1,8 +1,12 @@
 package com.example.util
 
+import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
+import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import com.example.data.model.MediaType
 import com.example.data.model.StatusItem
@@ -10,6 +14,7 @@ import java.io.File
 
 object StatusScanner {
 
+    private const val TAG = "StatusScanner"
     private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp")
     private val VIDEO_EXTENSIONS = setOf("mp4", "3gp", "mkv", "mov", "webm")
 
@@ -17,7 +22,7 @@ object StatusScanner {
         val result = mutableListOf<StatusItem>()
         val seenPaths = mutableSetOf<String>()
 
-        // 1. Scan SAF TreeUri if user granted permission to Android/media or any subfolder
+        // 1. Scan SAF TreeUri if user granted permission to Android/media or WhatsApp folder
         if (!customTreeUri.isNullOrBlank()) {
             try {
                 val treeUri = Uri.parse(customTreeUri)
@@ -26,12 +31,11 @@ object StatusScanner {
                     val allDocFolders = mutableListOf<DocumentFile>()
                     if (rootDoc.isDirectory) {
                         allDocFolders.add(rootDoc)
-                        collectAllFolders(rootDoc, allDocFolders, currentDepth = 0, maxDepth = 10)
+                        collectAllFolders(rootDoc, allDocFolders, currentDepth = 0, maxDepth = 12)
                     }
 
                     for (folder in allDocFolders.distinctBy { it.uri.toString() }) {
                         try {
-                            val folderName = folder.name ?: ""
                             val files = folder.listFiles()
                             for (doc in files) {
                                 if (doc.isFile && doc.name != null && !doc.name!!.startsWith(".nomedia") && doc.length() > 0) {
@@ -42,8 +46,8 @@ object StatusScanner {
                                         VIDEO_EXTENSIONS.contains(ext) -> MediaType.VIDEO
                                         else -> null
                                     }
-                                    if (mediaType != null && !seenPaths.contains(doc.uri.toString())) {
-                                        val uriStr = doc.uri.toString()
+                                    val uriStr = doc.uri.toString()
+                                    if (mediaType != null && !seenPaths.contains(uriStr) && !seenPaths.contains(name)) {
                                         val isBusiness = uriStr.contains("w4b", ignoreCase = true) || uriStr.contains("Business", ignoreCase = true)
                                         val item = StatusItem(
                                             id = uriStr,
@@ -61,16 +65,17 @@ object StatusScanner {
                                         )
                                         result.add(item)
                                         seenPaths.add(uriStr)
+                                        seenPaths.add(name)
                                     }
                                 }
                             }
                         } catch (e: Exception) {
-                            e.printStackTrace()
+                            Log.e(TAG, "Error reading folder ${folder.name}", e)
                         }
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Error scanning customTreeUri: $customTreeUri", e)
             }
         }
 
@@ -115,8 +120,8 @@ object StatusScanner {
                                     VIDEO_EXTENSIONS.contains(ext) -> MediaType.VIDEO
                                     else -> null
                                 }
-                                if (mediaType != null && !seenPaths.contains(file.absolutePath)) {
-                                    val isBusiness = dir.absolutePath.contains("w4b") || dir.absolutePath.contains("Business")
+                                if (mediaType != null && !seenPaths.contains(file.absolutePath) && !seenPaths.contains(file.name)) {
+                                    val isBusiness = dir.absolutePath.contains("w4b", ignoreCase = true) || dir.absolutePath.contains("Business", ignoreCase = true)
                                     val item = StatusItem(
                                         id = file.absolutePath,
                                         title = file.name,
@@ -133,13 +138,14 @@ object StatusScanner {
                                     )
                                     result.add(item)
                                     seenPaths.add(file.absolutePath)
+                                    seenPaths.add(file.name)
                                 }
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e(TAG, "Error scanning dir ${dir.absolutePath}", e)
             }
         }
 
@@ -215,7 +221,7 @@ object StatusScanner {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e(TAG, "Error listing files in ${currentDir.name}", e)
         }
     }
 }

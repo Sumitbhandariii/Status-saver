@@ -82,7 +82,6 @@ fun PermissionGuideDialog(
 
     val mediaFolderUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         try {
-            // Target the Android/media folder directly so Android's document picker opens Android/media where "USE THIS FOLDER" is accessible
             val path = "Android%2Fmedia"
             Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
         } catch (e: Exception) {
@@ -222,7 +221,7 @@ fun PermissionGuideDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Grant Media Folder Permission",
+                            text = "Grant Android/media Permission",
                             fontWeight = FontWeight.Bold
                         )
                     }

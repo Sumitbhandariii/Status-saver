@@ -632,12 +632,9 @@ fun AdBannerView(
         config.bannerAdUnitId.ifBlank { "ca-app-pub-8212461864193378/8750309827" }
     }
 
-    var isAdLoaded by remember { mutableStateOf(false) }
-
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 50.dp)
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .testTag("banner_ad_unit"),
         contentAlignment = Alignment.Center
@@ -654,8 +651,7 @@ fun AdBannerView(
                     adListener = object : AdListener() {
                         override fun onAdLoaded() {
                             super.onAdLoaded()
-                            isAdLoaded = true
-                            android.util.Log.d("AdMobManager", "Banner ad loaded successfully ($targetAdUnitId)")
+                            android.util.Log.d("AdMobManager", "Banner ad loaded successfully: $targetAdUnitId")
                         }
 
                         override fun onAdFailedToLoad(adError: LoadAdError) {
@@ -664,22 +660,16 @@ fun AdBannerView(
                                 "AdMobManager",
                                 "Banner ad failed to load ($targetAdUnitId): code=${adError.code}, msg=${adError.message}"
                             )
-                            postDelayed({
-                                try {
-                                    loadAd(AdRequest.Builder().build())
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            }, 5000L)
                         }
                     }
                     loadAd(AdRequest.Builder().build())
                 }
             },
-            update = { view ->
-                if (view.adUnitId != targetAdUnitId) {
-                    view.adUnitId = targetAdUnitId
-                    view.loadAd(AdRequest.Builder().build())
+            update = { adView ->
+                // Ensure ad view is retained and refreshed properly
+                if (adView.adUnitId != targetAdUnitId) {
+                    adView.adUnitId = targetAdUnitId
+                    adView.loadAd(AdRequest.Builder().build())
                 }
             },
             modifier = Modifier
