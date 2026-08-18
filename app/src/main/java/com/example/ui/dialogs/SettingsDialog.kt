@@ -1,5 +1,6 @@
 package com.example.ui.dialogs
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,6 +51,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,9 +70,15 @@ fun SettingsDialog(
     onOpenCleaner: (() -> Unit)? = null,
     onDismiss: () -> Unit
 ) {
-    var autoSaveEnabled by remember { mutableStateOf(false) }
-    var highQualitySave by remember { mutableStateOf(true) }
-    var notifyNewStatuses by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("status_vault_prefs", Context.MODE_PRIVATE) }
+    
+    var highQualitySave by remember { 
+        mutableStateOf(prefs.getBoolean("pref_high_quality_save", true)) 
+    }
+    var notifyNewStatuses by remember { 
+        mutableStateOf(prefs.getBoolean("pref_status_saved_alerts", false)) 
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -167,7 +175,10 @@ fun SettingsDialog(
 
                     Switch(
                         checked = highQualitySave,
-                        onCheckedChange = { highQualitySave = it },
+                        onCheckedChange = { 
+                            highQualitySave = it
+                            prefs.edit().putBoolean("pref_high_quality_save", it).apply()
+                        },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = PrimaryDeepPurple,
@@ -201,7 +212,10 @@ fun SettingsDialog(
 
                     Switch(
                         checked = notifyNewStatuses,
-                        onCheckedChange = { notifyNewStatuses = it },
+                        onCheckedChange = { 
+                            notifyNewStatuses = it
+                            prefs.edit().putBoolean("pref_status_saved_alerts", it).apply()
+                        },
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = Color.White,
                             checkedTrackColor = PrimaryDeepPurple,
