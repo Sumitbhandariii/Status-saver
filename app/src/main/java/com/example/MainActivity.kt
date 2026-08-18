@@ -223,6 +223,7 @@ fun MainAppContent(viewModel: StatusVaultViewModel) {
                             onNavigateSavedFilter = { viewModel.setSavedFilter(it) },
                             onSaveAll = { viewModel.saveAllCurrentStatuses() },
                             onOpenCleaner = { viewModel.openCleanerDialog() },
+                            onOpenPermissionGuide = { viewModel.openPermissionGuide() },
                             onStatusClick = { viewModel.openViewer(it, allStatuses) },
                             onSaveStatus = { viewModel.saveSingleStatus(it) },
                             onFavoriteStatus = { viewModel.toggleFavorite(it) },

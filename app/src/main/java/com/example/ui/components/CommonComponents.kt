@@ -632,12 +632,13 @@ fun AdBannerView(
         config.bannerAdUnitId.ifBlank { "ca-app-pub-8212461864193378/8750309827" }
     }
 
-    var isLoaded by remember { mutableStateOf(false) }
+    var isAdLoaded by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .heightIn(min = 50.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
             .testTag("banner_ad_unit"),
         contentAlignment = Alignment.Center
     ) {
@@ -653,7 +654,7 @@ fun AdBannerView(
                     adListener = object : AdListener() {
                         override fun onAdLoaded() {
                             super.onAdLoaded()
-                            isLoaded = true
+                            isAdLoaded = true
                             android.util.Log.d("AdMobManager", "Banner ad loaded successfully ($targetAdUnitId)")
                         }
 
@@ -663,18 +664,16 @@ fun AdBannerView(
                                 "AdMobManager",
                                 "Banner ad failed to load ($targetAdUnitId): code=${adError.code}, msg=${adError.message}"
                             )
-                            // Auto retry loading ad after delay
                             postDelayed({
                                 try {
                                     loadAd(AdRequest.Builder().build())
                                 } catch (e: Exception) {
                                     e.printStackTrace()
                                 }
-                            }, 10000L)
+                            }, 5000L)
                         }
                     }
-                    val request = AdRequest.Builder().build()
-                    loadAd(request)
+                    loadAd(AdRequest.Builder().build())
                 }
             },
             update = { view ->

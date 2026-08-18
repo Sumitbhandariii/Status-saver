@@ -17,22 +17,21 @@ object StatusScanner {
         val result = mutableListOf<StatusItem>()
         val seenPaths = mutableSetOf<String>()
 
-        // 1. Scan SAF TreeUri if provided (User granted permission to Android/media or any folder)
+        // 1. Scan SAF TreeUri if user granted permission to Android/media or any subfolder
         if (!customTreeUri.isNullOrBlank()) {
             try {
                 val treeUri = Uri.parse(customTreeUri)
                 val rootDoc = DocumentFile.fromTreeUri(context, treeUri)
-                if (rootDoc != null && rootDoc.isDirectory) {
-                    val statusFolders = mutableListOf<DocumentFile>()
-                    
-                    // Collect all directories under the tree (Android/media -> com.whatsapp -> WhatsApp -> Media -> .Statuses)
-                    collectAllFolders(rootDoc, statusFolders, currentDepth = 0, maxDepth = 8)
-                    statusFolders.add(rootDoc)
+                if (rootDoc != null) {
+                    val allDocFolders = mutableListOf<DocumentFile>()
+                    if (rootDoc.isDirectory) {
+                        allDocFolders.add(rootDoc)
+                        collectAllFolders(rootDoc, allDocFolders, currentDepth = 0, maxDepth = 10)
+                    }
 
-                    for (folder in statusFolders.distinctBy { it.uri.toString() }) {
+                    for (folder in allDocFolders.distinctBy { it.uri.toString() }) {
                         try {
                             val folderName = folder.name ?: ""
-                            // Check if folder is .Statuses or Statuses or contains media
                             val files = folder.listFiles()
                             for (doc in files) {
                                 if (doc.isFile && doc.name != null && !doc.name!!.startsWith(".nomedia") && doc.length() > 0) {
@@ -44,29 +43,24 @@ object StatusScanner {
                                         else -> null
                                     }
                                     if (mediaType != null && !seenPaths.contains(doc.uri.toString())) {
-                                        val isStatusSource = folderName.contains("Statuses", ignoreCase = true) ||
-                                                doc.uri.toString().contains("Statuses", ignoreCase = true) ||
-                                                doc.uri.toString().contains("com.whatsapp", ignoreCase = true)
-
-                                        if (isStatusSource || statusFolders.size <= 2) {
-                                            val isBusiness = doc.uri.toString().contains("w4b", ignoreCase = true) || doc.uri.toString().contains("Business", ignoreCase = true)
-                                            val item = StatusItem(
-                                                id = doc.uri.toString(),
-                                                title = name,
-                                                uriString = doc.uri.toString(),
-                                                filePath = null,
-                                                mediaType = mediaType,
-                                                fileSize = doc.length(),
-                                                durationMs = if (mediaType == MediaType.VIDEO) 15000L else 0L,
-                                                dateModified = if (doc.lastModified() > 0) doc.lastModified() else System.currentTimeMillis(),
-                                                isSaved = false,
-                                                isFavorite = false,
-                                                isNew = true,
-                                                source = if (isBusiness) "WHATSAPP_BUSINESS" else "WHATSAPP"
-                                            )
-                                            result.add(item)
-                                            seenPaths.add(doc.uri.toString())
-                                        }
+                                        val uriStr = doc.uri.toString()
+                                        val isBusiness = uriStr.contains("w4b", ignoreCase = true) || uriStr.contains("Business", ignoreCase = true)
+                                        val item = StatusItem(
+                                            id = uriStr,
+                                            title = name,
+                                            uriString = uriStr,
+                                            filePath = null,
+                                            mediaType = mediaType,
+                                            fileSize = doc.length(),
+                                            durationMs = if (mediaType == MediaType.VIDEO) 15000L else 0L,
+                                            dateModified = if (doc.lastModified() > 0) doc.lastModified() else System.currentTimeMillis(),
+                                            isSaved = false,
+                                            isFavorite = false,
+                                            isNew = true,
+                                            source = if (isBusiness) "WHATSAPP_BUSINESS" else "WHATSAPP"
+                                        )
+                                        result.add(item)
+                                        seenPaths.add(uriStr)
                                     }
                                 }
                             }
@@ -83,22 +77,26 @@ object StatusScanner {
         // 2. Scan standard WhatsApp direct file paths (covers Android 9, 10, 11, 12, 13, 14, 15, Dual WhatsApp)
         val extStorage = Environment.getExternalStorageDirectory()
         val possibleDirs = listOf(
-            // Modern WhatsApp (Android 11+)
+            // Modern WhatsApp in Android/media (Android 11+)
             File(extStorage, "Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
             File(extStorage, "Android/media/com.whatsapp/WhatsApp/Media/Statuses"),
-            // WhatsApp Business Modern
+            File(extStorage, "Android/media/com.whatsapp/WhatsApp/Media"),
+            // WhatsApp Business Modern in Android/media
             File(extStorage, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses"),
             File(extStorage, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media/Statuses"),
-            // Dual/Clone WhatsApp
+            File(extStorage, "Android/media/com.whatsapp.w4b/WhatsApp Business/Media"),
+            // Cloned / Dual WhatsApp
             File(extStorage, "Android/media/com.whatsapp.clone/WhatsApp/Media/.Statuses"),
             File(extStorage, "Android/media/com.whatsapp.dual/WhatsApp/Media/.Statuses"),
-            // Legacy WhatsApp
+            File(extStorage, "Android/media/com.gbwhatsapp/GBWhatsApp/Media/.Statuses"),
+            File(extStorage, "Android/media/com.fmwhatsapp/FMWhatsApp/Media/.Statuses"),
+            File(extStorage, "Android/media/com.yowhatsapp/YoWhatsApp/Media/.Statuses"),
+            // Legacy WhatsApp root paths (Android 10 and below)
             File(extStorage, "WhatsApp/Media/.Statuses"),
             File(extStorage, "WhatsApp/Media/Statuses"),
-            // Legacy WhatsApp Business
             File(extStorage, "WhatsApp Business/Media/.Statuses"),
             File(extStorage, "WhatsApp Business/Media/Statuses"),
-            // Dual Space / Parallel Space / App Cloner Paths
+            File(extStorage, "GBWhatsApp/Media/.Statuses"),
             File(extStorage, "DualApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
             File(extStorage, "ParallelApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"),
             File(extStorage, "999/Android/media/com.whatsapp/WhatsApp/Media/.Statuses")

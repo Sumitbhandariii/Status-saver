@@ -80,6 +80,7 @@ fun HomeScreen(
     onNavigateSavedFilter: (SavedFilter) -> Unit,
     onSaveAll: () -> Unit,
     onOpenCleaner: () -> Unit,
+    onOpenPermissionGuide: () -> Unit = {},
     onStatusClick: (StatusItem) -> Unit,
     onSaveStatus: (StatusItem) -> Unit,
     onFavoriteStatus: (StatusItem) -> Unit,
@@ -410,9 +411,11 @@ fun HomeScreen(
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
+                        onClick = onOpenPermissionGuide,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .testTag("card_home_grant_permission")
                     ) {
                         Row(
                             modifier = Modifier
@@ -423,9 +426,9 @@ fun HomeScreen(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(44.dp)
-                                    .clip(CircleShape)
-                                    .background(PrimaryPurpleLight),
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(PrimaryPurpleLight),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -434,21 +437,26 @@ fun HomeScreen(
                                     tint = PrimaryDeepPurple
                                 )
                             }
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "No recent statuses detected",
+                                    text = "Permission / Media Access",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = PrimaryText
                                     )
                                 )
                                 Text(
-                                    text = "View WhatsApp statuses on your phone to see them here.",
+                                    text = "Tap here to select Android/media folder & view statuses.",
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         color = SecondaryText
                                     )
                                 )
                             }
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "Grant Access",
+                                tint = PrimaryDeepPurple
+                            )
                         }
                     }
                 }
