@@ -139,12 +139,7 @@ object StatusScanner {
                     for (file in files) {
                         if (file.isDirectory) {
                             val dirName = file.name?.lowercase() ?: ""
-                            // Always traverse into media directories, whatsapp packages, or statuses
-                            if (!dirName.startsWith(".") || dirName == ".statuses" || dirName == ".thumbs") {
-                                if (dirName != "cache" && dirName != "thumbnails") {
-                                    queue.add(file)
-                                }
-                            } else if (dirName == ".statuses" || dirName == "statuses") {
+                            if (dirName != "cache" && dirName != "thumbnails" && dirName != ".trash") {
                                 queue.add(file)
                             }
                         } else if (file.isFile && file.length() > 0) {
@@ -228,11 +223,7 @@ object StatusScanner {
 
                                 if (mime == DocumentsContract.Document.MIME_TYPE_DIR) {
                                     val lowerName = name.lowercase()
-                                    if (!lowerName.startsWith(".") || lowerName == ".statuses") {
-                                        if (lowerName != "cache" && lowerName != "thumbnails") {
-                                            queue.add(docId)
-                                        }
-                                    } else if (lowerName == "statuses") {
+                                    if (lowerName != "cache" && lowerName != "thumbnails" && lowerName != ".trash") {
                                         queue.add(docId)
                                     }
                                 } else if (size > 0 && !name.startsWith(".nomedia")) {
