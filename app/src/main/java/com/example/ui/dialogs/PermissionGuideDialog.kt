@@ -89,14 +89,19 @@ fun PermissionGuideDialog(
     val initialMediaUri = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
-                // Try DocumentsContract tree document URI for primary:Android/media
-                val path = "primary:Android/media"
+                // Try DocumentsContract tree document URI for primary:Android/media/com.whatsapp/WhatsApp/Media
+                val path = "primary:Android/media/com.whatsapp/WhatsApp/Media"
                 DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
             } catch (e: Exception) {
                 try {
-                    Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia")
+                    val path = "primary:Android/media"
+                    DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
                 } catch (ignored: Exception) {
-                    null
+                    try {
+                        Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia")
+                    } catch (ignored2: Exception) {
+                        null
+                    }
                 }
             }
         } else {
@@ -195,14 +200,14 @@ fun PermissionGuideDialog(
                     number = "2",
                     icon = Icons.Default.Folder,
                     title = "Tap 'Use This Folder'",
-                    description = "When the system folder opens, simply tap 'Use this folder' at the bottom."
+                    description = "When the system folder opens, simply tap 'Use this folder' at the bottom. No need to look for hidden files!"
                 )
 
                 GuideStepRow(
                     number = "3",
                     icon = Icons.Default.Security,
-                    title = "Instant 1-Tap Save",
-                    description = "All viewed photos and videos will instantly display here for saving & sharing."
+                    title = "Instant Auto Detection",
+                    description = "All viewed photos & videos will be detected automatically and displayed on your home screen."
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -234,7 +239,7 @@ fun PermissionGuideDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Grant Android/media Permission",
+                            text = "Grant WhatsApp Folder Access",
                             fontWeight = FontWeight.Bold
                         )
                     }
