@@ -89,19 +89,14 @@ fun PermissionGuideDialog(
     val initialMediaUri = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
-                // Try DocumentsContract tree document URI for primary:Android/media/com.whatsapp/WhatsApp/Media
-                val path = "primary:Android/media/com.whatsapp/WhatsApp/Media"
+                // Direct Android/media tree document URI
+                val path = "primary:Android/media"
                 DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
             } catch (e: Exception) {
                 try {
-                    val path = "primary:Android/media"
-                    DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
+                    Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia")
                 } catch (ignored: Exception) {
-                    try {
-                        Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia")
-                    } catch (ignored2: Exception) {
-                        null
-                    }
+                    null
                 }
             }
         } else {
