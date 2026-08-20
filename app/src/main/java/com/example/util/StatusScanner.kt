@@ -150,46 +150,80 @@ object StatusScanner {
             "primary"
         }
 
-        // Method 1: Direct Doc ID querying for all known WhatsApp and WhatsApp Business .Statuses folders
-        // Querying the folder's doc ID directly returns all media files inside it even if the folder is hidden from directory pickers!
+        // Method 1: Comprehensive Direct Doc ID querying for all known WhatsApp and WhatsApp Business .Statuses folders
         val candidateDocIds = linkedSetOf<String>()
 
         if (!rootDocId.isNullOrBlank()) {
             candidateDocIds.add(rootDocId)
+            // If rootDocId is Media
             candidateDocIds.add("$rootDocId/.Statuses")
+            candidateDocIds.add("$rootDocId/.statuses")
             candidateDocIds.add("$rootDocId/Statuses")
+            candidateDocIds.add("$rootDocId/statuses")
+            // If rootDocId is WhatsApp or WhatsApp Business
             candidateDocIds.add("$rootDocId/Media/.Statuses")
+            candidateDocIds.add("$rootDocId/Media/.statuses")
             candidateDocIds.add("$rootDocId/Media/Statuses")
+            candidateDocIds.add("$rootDocId/Media/statuses")
+            // If rootDocId is com.whatsapp or com.whatsapp.w4b
             candidateDocIds.add("$rootDocId/WhatsApp/Media/.Statuses")
+            candidateDocIds.add("$rootDocId/WhatsApp/Media/.statuses")
             candidateDocIds.add("$rootDocId/WhatsApp/Media/Statuses")
             candidateDocIds.add("$rootDocId/WhatsApp Business/Media/.Statuses")
+            candidateDocIds.add("$rootDocId/WhatsApp Business/Media/.statuses")
             candidateDocIds.add("$rootDocId/WhatsApp Business/Media/Statuses")
+            // If rootDocId is Android/media
+            candidateDocIds.add("$rootDocId/com.whatsapp/WhatsApp/Media/.Statuses")
+            candidateDocIds.add("$rootDocId/com.whatsapp/WhatsApp/Media/.statuses")
+            candidateDocIds.add("$rootDocId/com.whatsapp/WhatsApp/Media/Statuses")
+            candidateDocIds.add("$rootDocId/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses")
+            candidateDocIds.add("$rootDocId/com.whatsapp.w4b/WhatsApp Business/Media/.statuses")
+            candidateDocIds.add("$rootDocId/com.whatsapp.w4b/WhatsApp Business/Media/Statuses")
+            candidateDocIds.add("$rootDocId/com.gbwhatsapp/GBWhatsApp/Media/.Statuses")
+            candidateDocIds.add("$rootDocId/com.fmwhatsapp/FMWhatsApp/Media/.Statuses")
+            candidateDocIds.add("$rootDocId/com.yowhatsapp/YoWhatsApp/Media/.Statuses")
         }
 
-        // Standard known document ID paths
-        candidateDocIds.addAll(
-            listOf(
-                "$volume:Android/media/com.whatsapp/WhatsApp/Media/.Statuses",
-                "$volume:Android/media/com.whatsapp/WhatsApp/Media/Statuses",
-                "$volume:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses",
-                "$volume:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/Statuses",
-                "$volume:Android/media/com.whatsapp.clone/WhatsApp/Media/.Statuses",
-                "$volume:Android/media/com.whatsapp.dual/WhatsApp/Media/.Statuses",
-                "$volume:Android/media/com.gbwhatsapp/GBWhatsApp/Media/.Statuses",
-                "$volume:Android/media/com.fmwhatsapp/FMWhatsApp/Media/.Statuses",
-                "$volume:Android/media/com.yowhatsapp/YoWhatsApp/Media/.Statuses",
-                "$volume:WhatsApp/Media/.Statuses",
-                "$volume:WhatsApp/Media/Statuses",
-                "$volume:WhatsApp Business/Media/.Statuses",
-                "$volume:WhatsApp Business/Media/Statuses",
-                "$volume:GBWhatsApp/Media/.Statuses",
-                "$volume:DualApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses",
-                "$volume:ParallelApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses",
-                "$volume:999/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"
+        // Standard known document ID paths across all volumes
+        val volumePrefixes = listOf(volume, "primary", "0", "1").distinct()
+        for (v in volumePrefixes) {
+            candidateDocIds.addAll(
+                listOf(
+                    "$v:Android/media/com.whatsapp/WhatsApp/Media/.Statuses",
+                    "$v:Android/media/com.whatsapp/WhatsApp/Media/.statuses",
+                    "$v:Android/media/com.whatsapp/WhatsApp/Media/Statuses",
+                    "$v:Android/media/com.whatsapp/WhatsApp/Media/statuses",
+                    "$v:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.Statuses",
+                    "$v:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/.statuses",
+                    "$v:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/Statuses",
+                    "$v:Android/media/com.whatsapp.w4b/WhatsApp Business/Media/statuses",
+                    "$v:Android/media/com.whatsapp.clone/WhatsApp/Media/.Statuses",
+                    "$v:Android/media/com.whatsapp.dual/WhatsApp/Media/.Statuses",
+                    "$v:Android/media/com.gbwhatsapp/GBWhatsApp/Media/.Statuses",
+                    "$v:Android/media/com.fmwhatsapp/FMWhatsApp/Media/.Statuses",
+                    "$v:Android/media/com.yowhatsapp/YoWhatsApp/Media/.Statuses",
+                    "$v:WhatsApp/Media/.Statuses",
+                    "$v:WhatsApp/Media/.statuses",
+                    "$v:WhatsApp/Media/Statuses",
+                    "$v:WhatsApp/Media/statuses",
+                    "$v:WhatsApp Business/Media/.Statuses",
+                    "$v:WhatsApp Business/Media/.statuses",
+                    "$v:WhatsApp Business/Media/Statuses",
+                    "$v:WhatsApp Business/Media/statuses",
+                    "$v:GBWhatsApp/Media/.Statuses",
+                    "$v:DualApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses",
+                    "$v:ParallelApp/Android/media/com.whatsapp/WhatsApp/Media/.Statuses",
+                    "$v:999/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"
+                )
             )
-        )
+        }
+
+        val queriedDocIds = mutableSetOf<String>()
 
         for (targetDocId in candidateDocIds) {
+            if (queriedDocIds.contains(targetDocId)) continue
+            queriedDocIds.add(targetDocId)
+
             var cursor: Cursor? = null
             try {
                 val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, targetDocId)
@@ -202,9 +236,10 @@ object StatusScanner {
                     val modIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
 
                     while (cursor.moveToNext()) {
-                        val docId = if (idIdx >= 0) cursor.getString(idIdx) else null ?: continue
-                        val name = if (nameIdx >= 0) cursor.getString(nameIdx) else ""
-                        val mime = if (mimeIdx >= 0) cursor.getString(mimeIdx) else ""
+                        val docId = if (idIdx >= 0) cursor.getString(idIdx) else null
+                        if (docId.isNullOrBlank()) continue
+                        val name = if (nameIdx >= 0) cursor.getString(nameIdx) ?: "" else ""
+                        val mime = if (mimeIdx >= 0) cursor.getString(mimeIdx) ?: "" else ""
                         val size = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else 0L
                         val mod = if (modIdx >= 0) cursor.getLong(modIdx) else System.currentTimeMillis()
 
@@ -244,13 +279,156 @@ object StatusScanner {
                     }
                 }
             } catch (e: Exception) {
-                // Target docId might not exist on this specific device, continue to next
+                // Target docId might not exist or outside tree, continue
             } finally {
                 try { cursor?.close() } catch (ignored: Exception) {}
             }
         }
 
-        // Method 2: DocumentFile tree crawler as additional fallback
+        // Method 2: Recursive DocumentsContract tree walk with proactive .Statuses probe
+        if (!rootDocId.isNullOrBlank()) {
+            val queue = ArrayDeque<String>()
+            queue.add(rootDocId)
+            var count = 0
+
+            while (queue.isNotEmpty() && count < 200) {
+                val currentId = queue.removeFirst()
+                count++
+
+                // Proactively probe hidden .Statuses inside this directory
+                val hiddenProbes = listOf("$currentId/.Statuses", "$currentId/.statuses", "$currentId/Statuses")
+                for (probeId in hiddenProbes) {
+                    if (!queriedDocIds.contains(probeId)) {
+                        queriedDocIds.add(probeId)
+                        var probeCursor: Cursor? = null
+                        try {
+                            val probeUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, probeId)
+                            probeCursor = context.contentResolver.query(probeUri, projection, null, null, null)
+                            if (probeCursor != null) {
+                                val idIdx = probeCursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                                val nameIdx = probeCursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+                                val mimeIdx = probeCursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+                                val sizeIdx = probeCursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+                                val modIdx = probeCursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+
+                                while (probeCursor.moveToNext()) {
+                                    val docId = if (idIdx >= 0) probeCursor.getString(idIdx) else null
+                                    if (docId.isNullOrBlank()) continue
+                                    val name = if (nameIdx >= 0) probeCursor.getString(nameIdx) ?: "" else ""
+                                    val mime = if (mimeIdx >= 0) probeCursor.getString(mimeIdx) ?: "" else ""
+                                    val size = if (sizeIdx >= 0) probeCursor.getLong(sizeIdx) else 0L
+                                    val mod = if (modIdx >= 0) probeCursor.getLong(modIdx) else System.currentTimeMillis()
+
+                                    if (mime != DocumentsContract.Document.MIME_TYPE_DIR && size > 0 && !name.startsWith(".nomedia")) {
+                                        val ext = name.substringAfterLast('.', "").lowercase()
+                                        val mediaType = when {
+                                            mime.startsWith("image/") || IMAGE_EXTENSIONS.contains(ext) -> MediaType.IMAGE
+                                            mime.startsWith("video/") || VIDEO_EXTENSIONS.contains(ext) -> MediaType.VIDEO
+                                            else -> null
+                                        }
+
+                                        if (mediaType != null) {
+                                            val childDocUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
+                                            val uriStr = childDocUri.toString()
+                                            if (!seenPaths.contains(uriStr) && !seenPaths.contains(name)) {
+                                                val isBusiness = probeId.contains("w4b", ignoreCase = true) || probeId.contains("Business", ignoreCase = true)
+                                                val item = StatusItem(
+                                                    id = uriStr,
+                                                    title = name,
+                                                    uriString = uriStr,
+                                                    filePath = null,
+                                                    mediaType = mediaType,
+                                                    fileSize = size,
+                                                    durationMs = if (mediaType == MediaType.VIDEO) 15000L else 0L,
+                                                    dateModified = if (mod > 0) mod else System.currentTimeMillis(),
+                                                    isSaved = false,
+                                                    isFavorite = false,
+                                                    isNew = true,
+                                                    source = if (isBusiness) "WHATSAPP_BUSINESS" else "WHATSAPP"
+                                                )
+                                                result.add(item)
+                                                seenPaths.add(uriStr)
+                                                seenPaths.add(name)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (ignored: Exception) {
+                        } finally {
+                            try { probeCursor?.close() } catch (ignored: Exception) {}
+                        }
+                    }
+                }
+
+                // Query visible children of current directory
+                var curCursor: Cursor? = null
+                try {
+                    val childUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, currentId)
+                    curCursor = context.contentResolver.query(childUri, projection, null, null, null)
+                    if (curCursor != null) {
+                        val idIdx = curCursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
+                        val nameIdx = curCursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
+                        val mimeIdx = curCursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+                        val sizeIdx = curCursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+                        val modIdx = curCursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+
+                        while (curCursor.moveToNext()) {
+                            val docId = if (idIdx >= 0) curCursor.getString(idIdx) else null
+                            if (docId.isNullOrBlank()) continue
+                            val name = if (nameIdx >= 0) curCursor.getString(nameIdx) ?: "" else ""
+                            val mime = if (mimeIdx >= 0) curCursor.getString(mimeIdx) ?: "" else ""
+                            val size = if (sizeIdx >= 0) curCursor.getLong(sizeIdx) else 0L
+                            val mod = if (modIdx >= 0) curCursor.getLong(modIdx) else System.currentTimeMillis()
+
+                            if (mime == DocumentsContract.Document.MIME_TYPE_DIR) {
+                                val lowerName = name.lowercase()
+                                if (lowerName != "cache" && lowerName != "thumbnails" && lowerName != ".trash") {
+                                    queue.add(docId)
+                                }
+                            } else if (size > 0 && !name.startsWith(".nomedia")) {
+                                val ext = name.substringAfterLast('.', "").lowercase()
+                                val mediaType = when {
+                                    mime.startsWith("image/") || IMAGE_EXTENSIONS.contains(ext) -> MediaType.IMAGE
+                                    mime.startsWith("video/") || VIDEO_EXTENSIONS.contains(ext) -> MediaType.VIDEO
+                                    else -> null
+                                }
+
+                                if (mediaType != null) {
+                                    val childDocUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, docId)
+                                    val uriStr = childDocUri.toString()
+                                    if (!seenPaths.contains(uriStr) && !seenPaths.contains(name)) {
+                                        val isBusiness = docId.contains("w4b", ignoreCase = true) || docId.contains("Business", ignoreCase = true)
+                                        val item = StatusItem(
+                                            id = uriStr,
+                                            title = name,
+                                            uriString = uriStr,
+                                            filePath = null,
+                                            mediaType = mediaType,
+                                            fileSize = size,
+                                            durationMs = if (mediaType == MediaType.VIDEO) 15000L else 0L,
+                                            dateModified = if (mod > 0) mod else System.currentTimeMillis(),
+                                            isSaved = false,
+                                            isFavorite = false,
+                                            isNew = true,
+                                            source = if (isBusiness) "WHATSAPP_BUSINESS" else "WHATSAPP"
+                                        )
+                                        result.add(item)
+                                        seenPaths.add(uriStr)
+                                        seenPaths.add(name)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (ignored: Exception) {
+                } finally {
+                    try { curCursor?.close() } catch (ignored: Exception) {}
+                }
+            }
+        }
+
+        // Method 3: DocumentFile tree crawler as additional fallback
         try {
             val rootDoc = DocumentFile.fromTreeUri(context, treeUri)
             if (rootDoc != null) {

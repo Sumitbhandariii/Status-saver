@@ -188,6 +188,77 @@ fun HomeScreen(
             }
         }
 
+        // Red WhatsApp Permission / Folder Access Banner
+        item {
+            Card(
+                shape = RoundedCornerShape(18.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFD32F2F)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                onClick = onOpenPermissionGuide,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                    .testTag("banner_home_permission_red")
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FolderOpen,
+                            contentDescription = "Folder Permission",
+                            tint = Color.White,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "WhatsApp Folder Permission",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "Tap here to grant access to WhatsApp media / .Statuses folder.",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = Color.White.copy(alpha = 0.9f),
+                                lineHeight = 16.sp
+                            )
+                        )
+                    }
+
+                    Surface(
+                        color = Color.White,
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(
+                            text = "GRANT",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color(0xFFD32F2F),
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
         // Metrics Dashboard Grid
         item {
             Column(

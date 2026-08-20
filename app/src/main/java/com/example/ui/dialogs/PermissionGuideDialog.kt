@@ -86,10 +86,26 @@ fun PermissionGuideDialog(
         }
     }
 
-    val initialMediaUri = remember {
+    val initialWhatsAppMediaUri = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
-                // Direct Android/media tree document URI
+                val path = "primary:Android/media/com.whatsapp/WhatsApp/Media"
+                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
+            } catch (e: Exception) {
+                try {
+                    Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia")
+                } catch (ignored: Exception) {
+                    null
+                }
+            }
+        } else {
+            null
+        }
+    }
+
+    val initialAndroidMediaUri = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
                 val path = "primary:Android/media"
                 DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
             } catch (e: Exception) {
@@ -162,47 +178,27 @@ fun PermissionGuideDialog(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Surface(
-                    color = PrimaryPurpleLight.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "Play Store Policy Compliant (Android 14 Scoped Storage)\n" +
-                               "1. WhatsApp me Status dekhein.\n" +
-                               "2. Niche button dabakar 'USE THIS FOLDER' par click karein.",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            color = PrimaryDeepPurple,
-                            fontWeight = FontWeight.SemiBold,
-                            lineHeight = 18.sp
-                        ),
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-
                 Spacer(modifier = Modifier.height(14.dp))
 
                 GuideStepRow(
                     number = "1",
                     icon = Icons.Default.Visibility,
-                    title = "View Status in WhatsApp",
-                    description = "WhatsApp only saves statuses temporarily after you view them in WhatsApp."
+                    title = "View Status in WhatsApp First",
+                    description = "Open WhatsApp and watch the photos/videos so they are downloaded to local storage."
                 )
 
                 GuideStepRow(
                     number = "2",
                     icon = Icons.Default.Folder,
-                    title = "Tap 'Use This Folder'",
-                    description = "When the system folder opens, simply tap 'Use this folder' at the bottom. No need to look for hidden files!"
+                    title = "Tap 'Use This Folder' & Allow",
+                    description = "When the folder opens, tap 'USE THIS FOLDER' at the bottom (or select .Statuses folder if hidden files is ON)."
                 )
 
                 GuideStepRow(
                     number = "3",
                     icon = Icons.Default.Security,
                     title = "Instant Auto Detection",
-                    description = "All viewed photos & videos will be detected automatically and displayed on your home screen."
+                    description = "All viewed statuses will immediately show up on your Home screen ready to save with 1 tap."
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -215,7 +211,7 @@ fun PermissionGuideDialog(
                     Button(
                         onClick = {
                             try {
-                                safLauncher.launch(initialMediaUri)
+                                safLauncher.launch(initialWhatsAppMediaUri)
                             } catch (e: Exception) {
                                 safLauncher.launch(null)
                             }
@@ -234,8 +230,35 @@ fun PermissionGuideDialog(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Grant WhatsApp Folder Access",
+                            text = "Select WhatsApp / .Statuses Folder",
                             fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            try {
+                                safLauncher.launch(initialAndroidMediaUri)
+                            } catch (e: Exception) {
+                                safLauncher.launch(null)
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag("btn_select_android_media_folder")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Folder,
+                            contentDescription = null,
+                            tint = PrimaryDeepPurple,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Select Android/media Folder",
+                            color = PrimaryDeepPurple,
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
 
@@ -244,7 +267,7 @@ fun PermissionGuideDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = "Not Now",
+                            text = "Cancel",
                             color = SecondaryText,
                             fontWeight = FontWeight.Medium,
                             fontSize = 13.sp
