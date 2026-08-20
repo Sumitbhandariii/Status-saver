@@ -89,10 +89,15 @@ fun PermissionGuideDialog(
     val initialMediaUri = remember {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             try {
-                val path = "Android%2Fmedia"
-                Uri.parse("content://com.android.externalstorage.documents/document/primary%3A$path")
+                // Try DocumentsContract tree document URI for primary:Android/media
+                val path = "primary:Android/media"
+                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
             } catch (e: Exception) {
-                null
+                try {
+                    Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia")
+                } catch (ignored: Exception) {
+                    null
+                }
             }
         } else {
             null

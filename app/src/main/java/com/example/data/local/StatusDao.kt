@@ -9,13 +9,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StatusDao {
-    @Query("SELECT * FROM statuses WHERE source != 'SAMPLE' AND id NOT LIKE 'sample_%' AND filePath NOT LIKE '%sample_statuses%' AND title NOT LIKE 'status_%' ORDER BY dateModified DESC")
+    @Query("SELECT * FROM statuses ORDER BY dateModified DESC")
     fun getAllStatuses(): Flow<List<StatusEntity>>
 
-    @Query("SELECT * FROM statuses WHERE isSaved = 1 AND source != 'SAMPLE' AND id NOT LIKE 'sample_%' AND filePath NOT LIKE '%sample_statuses%' AND title NOT LIKE 'status_%' ORDER BY COALESCE(savedDate, dateModified) DESC")
+    @Query("SELECT * FROM statuses WHERE isSaved = 1 ORDER BY COALESCE(savedDate, dateModified) DESC")
     fun getSavedStatuses(): Flow<List<StatusEntity>>
 
-    @Query("SELECT * FROM statuses WHERE isFavorite = 1 AND source != 'SAMPLE' AND id NOT LIKE 'sample_%' AND filePath NOT LIKE '%sample_statuses%' AND title NOT LIKE 'status_%' ORDER BY dateModified DESC")
+    @Query("SELECT * FROM statuses WHERE isFavorite = 1 ORDER BY dateModified DESC")
     fun getFavoriteStatuses(): Flow<List<StatusEntity>>
 
     @Query("SELECT * FROM statuses WHERE id = :id LIMIT 1")

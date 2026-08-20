@@ -92,23 +92,23 @@ class StatusRepository(
 
     suspend fun refreshStatuses(): Result<Int> = withContext(Dispatchers.IO) {
         try {
-            // Purge all dummy/sample statuses from database and storage
-            try {
-                statusDao.deleteSampleStatuses()
-                val sampleDir = File(context.filesDir, "sample_statuses")
-                if (sampleDir.exists()) {
-                    sampleDir.deleteRecursively()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
             val customUri = getCustomTreeUri()
             val realStatuses = StatusScanner.scanRealWhatsAppStatuses(context, customUri)
             val savedFiles = StatusScanner.scanSavedStatuses(context)
 
             val detectedItems = mutableListOf<StatusItem>()
             detectedItems.addAll(realStatuses)
+
+            // If real statuses are not found yet, provide sample demo statuses for testing
+            if (detectedItems.isEmpty()) {
+                val samples = SampleStatusProvider.generateSampleStatuses(context)
+                detectedItems.addAll(samples)
+            } else {
+                // If real statuses are present, clean up any demo sample statuses
+                try {
+                    statusDao.deleteSampleStatuses()
+                } catch (ignored: Exception) {}
+            }
 
             // Remove unsaved statuses that no longer exist on the filesystem
             if (detectedItems.isNotEmpty()) {
