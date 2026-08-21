@@ -183,22 +183,22 @@ fun PermissionGuideDialog(
                 GuideStepRow(
                     number = "1",
                     icon = Icons.Default.Visibility,
-                    title = "View Status in WhatsApp First",
-                    description = "Open WhatsApp and watch the photos/videos so they are downloaded to local storage."
+                    title = "View Statuses in WhatsApp",
+                    description = "Open WhatsApp and view the photo/video statuses once so WhatsApp downloads them to your device storage."
                 )
 
                 GuideStepRow(
                     number = "2",
                     icon = Icons.Default.Folder,
-                    title = "Tap 'Use This Folder' & Allow",
-                    description = "When the folder opens, tap 'USE THIS FOLDER' at the bottom (or select .Statuses folder if hidden files is ON)."
+                    title = "Tap 'USE THIS FOLDER' & Allow",
+                    description = "When the folder opens, simply tap 'USE THIS FOLDER' at the bottom. Even though .Statuses is hidden, the app automatically reaches inside and detects all status media!"
                 )
 
                 GuideStepRow(
                     number = "3",
                     icon = Icons.Default.Security,
-                    title = "Instant Auto Detection",
-                    description = "All viewed statuses will immediately show up on your Home screen ready to save with 1 tap."
+                    title = "Automatic Instant Loading",
+                    description = "All downloaded WhatsApp & WhatsApp Business statuses will immediately appear on your screen ready to save or share."
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

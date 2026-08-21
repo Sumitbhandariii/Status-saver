@@ -99,16 +99,10 @@ class StatusRepository(
             val detectedItems = mutableListOf<StatusItem>()
             detectedItems.addAll(realStatuses)
 
-            // If real statuses are not found yet, provide sample demo statuses for testing
-            if (detectedItems.isEmpty()) {
-                val samples = SampleStatusProvider.generateSampleStatuses(context)
-                detectedItems.addAll(samples)
-            } else {
-                // If real statuses are present, clean up any demo sample statuses
-                try {
-                    statusDao.deleteSampleStatuses()
-                } catch (ignored: Exception) {}
-            }
+            // Clean up any remaining demo sample statuses permanently
+            try {
+                statusDao.deleteSampleStatuses()
+            } catch (ignored: Exception) {}
 
             // Remove unsaved statuses that no longer exist on the filesystem
             if (detectedItems.isNotEmpty()) {
