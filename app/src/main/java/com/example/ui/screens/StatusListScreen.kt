@@ -331,8 +331,8 @@ fun StatusListScreen(
             EmptyStateView(
                 icon = if (currentTab == StatusTab.IMAGES) Icons.Default.Image else Icons.Default.Videocam,
                 title = if (currentTab == StatusTab.IMAGES) "No Images Found" else "No Videos Found",
-                description = "1. View statuses in WhatsApp.\n2. Tap 'Select Android/media Folder' below.\n3. Tap 'Use this folder' at the bottom to load all viewed statuses.",
-                actionButtonText = "Select Android/media Folder",
+                description = "1. View statuses in WhatsApp.\n2. Tap 'Grant WhatsApp Permission' below.\n3. Tap 'USE THIS FOLDER' and allow to load all statuses.",
+                actionButtonText = "Grant WhatsApp Permission",
                 onActionClick = onOpenPermissionGuide,
                 modifier = Modifier.weight(1f)
             )

@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
-import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -24,8 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Visibility
@@ -36,7 +35,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,10 +51,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.ui.theme.AccentGreen
 import com.example.ui.theme.PrimaryDeepPurple
 import com.example.ui.theme.PrimaryPurpleLight
 import com.example.ui.theme.PrimaryText
-import com.example.ui.theme.SecondaryCyan
 import com.example.ui.theme.SecondaryText
 
 @Composable
@@ -74,7 +72,6 @@ fun PermissionGuideDialog(
                 val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                 context.contentResolver.takePersistableUriPermission(uri, takeFlags)
             } catch (e: Exception) {
-                // If persistable flags fail for read-only or certain providers, try read-only
                 try {
                     context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 } catch (ignored: Exception) {
@@ -94,23 +91,6 @@ fun PermissionGuideDialog(
             } catch (e: Exception) {
                 try {
                     Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia")
-                } catch (ignored: Exception) {
-                    null
-                }
-            }
-        } else {
-            null
-        }
-    }
-
-    val initialAndroidMediaUri = remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                val path = "primary:Android/media"
-                DocumentsContract.buildDocumentUri("com.android.externalstorage.documents", path)
-            } catch (e: Exception) {
-                try {
-                    Uri.parse("content://com.android.externalstorage.documents/document/primary%3AAndroid%2Fmedia")
                 } catch (ignored: Exception) {
                     null
                 }
@@ -184,95 +164,67 @@ fun PermissionGuideDialog(
                     number = "1",
                     icon = Icons.Default.Visibility,
                     title = "View Statuses in WhatsApp",
-                    description = "Open WhatsApp and view the photo/video statuses once so WhatsApp downloads them to your device storage."
+                    description = "Open WhatsApp and view the status photos or videos once so WhatsApp downloads them to your device storage."
                 )
 
                 GuideStepRow(
                     number = "2",
-                    icon = Icons.Default.Folder,
+                    icon = Icons.Default.FolderOpen,
                     title = "Tap 'USE THIS FOLDER' & Allow",
-                    description = "When the folder opens, simply tap 'USE THIS FOLDER' at the bottom. Even though .Statuses is hidden, the app automatically reaches inside and detects all status media!"
+                    description = "Tap the single permission button below. When the folder screen opens, simply tap 'USE THIS FOLDER' at the bottom and confirm 'ALLOW'."
                 )
 
                 GuideStepRow(
                     number = "3",
-                    icon = Icons.Default.Security,
-                    title = "Automatic Instant Loading",
-                    description = "All downloaded WhatsApp & WhatsApp Business statuses will immediately appear on your screen ready to save or share."
+                    icon = Icons.Default.CheckCircle,
+                    title = "Instant Status Loading",
+                    description = "Even though .Statuses is hidden by Android, our engine automatically detects and loads all your viewed photos and videos!"
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                // Actions
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                // Single unified permission button
+                Button(
+                    onClick = {
+                        try {
+                            safLauncher.launch(initialWhatsAppMediaUri)
+                        } catch (e: Exception) {
+                            safLauncher.launch(null)
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryDeepPurple),
+                    shape = RoundedCornerShape(14.dp),
+                    contentPadding = PaddingValues(vertical = 14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("btn_select_whatsapp_folder")
                 ) {
-                    Button(
-                        onClick = {
-                            try {
-                                safLauncher.launch(initialWhatsAppMediaUri)
-                            } catch (e: Exception) {
-                                safLauncher.launch(null)
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryDeepPurple),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("btn_select_whatsapp_folder")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FolderOpen,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Select WhatsApp / .Statuses Folder",
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.FolderOpen,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = "Grant WhatsApp Status Permission",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
 
-                    OutlinedButton(
-                        onClick = {
-                            try {
-                                safLauncher.launch(initialAndroidMediaUri)
-                            } catch (e: Exception) {
-                                safLauncher.launch(null)
-                            }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .testTag("btn_select_android_media_folder")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Folder,
-                            contentDescription = null,
-                            tint = PrimaryDeepPurple,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Select Android/media Folder",
-                            color = PrimaryDeepPurple,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                Spacer(modifier = Modifier.height(4.dp))
 
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "Cancel",
-                            color = SecondaryText,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 13.sp
-                        )
-                    }
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Cancel",
+                        color = SecondaryText,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 13.sp
+                    )
                 }
             }
         }

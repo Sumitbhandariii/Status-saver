@@ -6,6 +6,7 @@ import android.content.ComponentCallbacks2
 import android.os.Bundle
 import coil.ImageLoader
 import coil.ImageLoaderFactory
+import coil.decode.VideoFrameDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.example.ads.AdMobManager
@@ -13,7 +14,7 @@ import com.example.ads.AdMobManager
 /**
  * Main Application class for StatusVault.
  * Configures modern Coil ImageLoader with hardware GPU bitmaps,
- * responsive memory cache trimming, and disk cache.
+ * video thumbnail decoding, responsive memory cache trimming, and disk cache.
  */
 class StatusVaultApplication : Application(), ImageLoaderFactory {
 
@@ -46,6 +47,9 @@ class StatusVaultApplication : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
         return imageLoaderInstance ?: ImageLoader.Builder(this)
+            .components {
+                add(VideoFrameDecoder.Factory())
+            }
             .memoryCache {
                 MemoryCache.Builder(this)
                     .maxSizePercent(0.25)

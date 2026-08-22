@@ -439,14 +439,14 @@ fun HomeScreen(
                             }
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "Permission / Media Access",
+                                    text = "WhatsApp Status Access",
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Bold,
                                         color = PrimaryText
                                     )
                                 )
                                 Text(
-                                    text = "Tap here to select Android/media folder & view statuses.",
+                                    text = "Tap here to grant WhatsApp folder access & load statuses.",
                                     style = MaterialTheme.typography.bodySmall.copy(
                                         color = SecondaryText
                                     )
